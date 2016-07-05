@@ -55,7 +55,7 @@ class Model:
 
 
         
-    def flux_star(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
+    def Continuum(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
 
         # Double Voigt profile
         delta_lambda =   LyA*(BetaPicRV/3e5)
@@ -73,14 +73,27 @@ class Model:
         return f, f_star
         
 
-    def absorption(self, l,v_bp,nh,vturb,T,LyA):
+    def absorption(self, l,v_bp,nh,vturb,T,param):
         
         # [Hydrogen, Deuterium]   
-        w       = [LyA,1215.3394]
-        mass    = [1.,2.]
-        fosc    = [0.416,0.416]
-        delta   = np.array([0.627e9,0.627e9]) /(4.*np.pi)
-        N_col   = np.array([1.,1.5e-5])*10**nh
+        w       = [param["lines"]["line"]["N1"]["Wavelength"],
+                  param["lines"]["line"]["N2"]["Wavelength"],
+                  param["lines"]["line"]["N3"]["Wavelength"]]
+        
+        mass    = [param["lines"]["line"]["N1"]["Mass"],
+                  param["lines"]["line"]["N2"]["Mass"],
+                  param["lines"]["line"]["N3"]["Mass"]]
+        
+        fosc    = [param["lines"]["line"]["N1"]["Strength"],
+                  param["lines"]["line"]["N2"]["Strength"],
+                  param["lines"]["line"]["N3"]["Strength"]]
+        
+        delta   = np.array([param["lines"]["line"]["N1"]["Gamma"],
+                  param["lines"]["line"]["N2"]["Gamma"],
+                  param["lines"]["line"]["N3"]["Gamma"]]) /(4.*np.pi)
+        
+        N_col   = np.array([1.,1.,1.,1.])*10**nh
+        
         c       = 2.99793e14
         k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
         u       = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
@@ -96,7 +109,6 @@ class Model:
             tv      = 1.16117705e-14*N_col[i]*w[i]*fosc[i]/b_wid
             a       = delta[i]/dnud
             hav     = tv*self.voigt_wofz(a,v)
-            #hav     = tv*self.Voigt(l,a,v)
             
             # To avoid underflow which occurs when you have exp(small negative number)
             for j in range(len(hav)):
@@ -108,134 +120,69 @@ class Model:
         return abs_ism
 
 
-    def LyModel(self, params, Const, ModelType):
+    def LyModel(self, params, Const, ModelType, param):
         
         '''
         ModelType refers to the kind of model you are interested in.
-
+  
         ModelType = 1
-        ========================================================================
-        This model includes a slope component
-        
-            slope   = The slope of model. i.e. model*(slope + 1.)
-        ========================================================================    
-
-        ModelType = 2
         ========================================================================
         No extra components but the H absorption is not fixed to the beta pic
         reference frame, but is free to vary.
         ========================================================================            
                 
-        ModelType = 3
-        ========================================================================
-        This model includes an additional component X decribed by the free
-        paramteres:
-        
-            v_X     = the velocity of the additional component
-            nh_X    = the column density of the additional component
-        ========================================================================    
-
-        ModelType = 4
-        ========================================================================
-        No extra components.
-        ========================================================================  
-
-        ModelType = 5
-        ========================================================================
-        Same as ModelType = 2, but with the ISM column density free to vary.
-        ========================================================================          
-
-        ModelType = 6
-        ========================================================================
-        Same as ModelType = 3, but with the ISM column density free to vary.
-        ========================================================================   
         '''
         
-        # Free parameters
-        if ModelType == 1:
-            nh_bp, max_f, uf, av, slope             = params
-
-        if ModelType == 2:
-            nh_bp, max_f, uf, av, v_bp              = params
-            
-        if ModelType == 3:
-            nh_bp, max_f, uf, av, v_X, nh_X         = params
-
-        if ModelType == 4:
-            nh_bp, max_f, uf, av                    = params
-
-        if ModelType == 5:
-            nh_bp, max_f, uf, av, v_bp, nh_ism      = params
-
-        if ModelType == 6:
-            nh_bp, max_f, uf, av, v_X, nh_X, nh_ism = params
+        sigma_kernel = 6.5
+        s1 = param["fit"]["continuum"]["start"]
+        s2 = param["fit"]["continuum"]["stop"]
         
-        # Fixed parameters
         if ModelType == 1:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,continuum_fit           = Const
-
-        if ModelType == 2:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit                = Const
-            
-        if ModelType == 3:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit   = Const
-
-        if ModelType == 4:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,nh_ism,b_ism,T_ism,v_bp,b_bp,T_bp,continuum_fit           = Const
-
-        if ModelType == 5:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,b_bp,T_bp,continuum_fit         = Const
-
-        if ModelType == 6:
-            W,l,LyA,BetaPicRV,sigma_kernel,dp,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp,b_X,T_X,continuum_fit          = Const
-
+            # Free parameters
+            nh_bp, v_bp     = params
+ 
+            # Fixed parameters
+            W,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,b_bp,T_bp   = Const
+        '''
+        l = []
+        #W = []
+        for i in range(len(lw)):
+            if s1 <= lw[i] <= s2:
+                l.append(lw[i])
+        #for i in range(len(w)):
+        #    if s1 <= w[i] <= s2:
+        #        W.append(w[i])
+        
+        l = np.array(l)
+        W = w
+        #W = np.array(W)
+        '''
+        
         kernel      =   self.K(W,l,sigma_kernel)
 
         # Calculates the ISM absorption
-        abs_ism     =   self.absorption(l,v_ism,nh_ism,b_ism,T_ism,LyA)
-        abs_bp      =   self.absorption(l,v_bp,nh_bp,b_bp,T_bp,LyA)
-        
-        if ModelType in [3,6]:
-            abs_X       =   self.absorption(l,v_X,nh_X,b_X,T_X,LyA)
+        abs_ism     =   self.absorption(l,v_ism,nh_ism,b_ism,T_ism,param)
+        abs_bp      =   self.absorption(l,v_bp,nh_bp,b_bp,T_bp,param)
 
-        # Stellar Ly-alpha line
-        f, f_star   =   self.flux_star(LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit)
+
+        # Continuum line
+        f   =   np.ones(len(l))*1.0e-14#self.Continuum(L1,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit)
        
         # Stellar spectral profile, as seen from Earth
         # after absorption by the ISM and BP CS disk.
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
-
-
-        if ModelType in [3,6]:
-            f_abs_con   =   np.convolve(f*abs_ism*abs_bp*abs_X, kernel, mode='same')
-        else:
-            f_abs_con   =   np.convolve(f*abs_ism*abs_bp, kernel, mode='same')
         
-        # Absorption by the ISM
-        if ModelType == 1:
-            f_abs_ism   =   np.convolve(f*abs_ism, kernel, mode='same')*(l*slope+1.0)
-        else:
-            f_abs_ism   =   np.convolve(f*abs_ism, kernel, mode='same')
+        f_abs_con   =   np.convolve(f*abs_ism*abs_bp, kernel, mode='same')
+        
+        f_abs_ism   =   np.convolve(f*abs_ism, kernel, mode='same')
         
         # Absorption by beta Pictoris  
-        if ModelType == 1:
-            f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')*(l*slope+1.0)
-        else:
-            f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')
+        f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')
 
-        # Absorption by component X  
-        if ModelType in [3,6]:
-            f_abs_X    =   np.convolve(f*abs_X, kernel, mode='same')
+
         
         # Interpolation on COS wavelengths, relative to the star
-        if ModelType == 1:
-            f_abs_int   =   np.interp(W,l,f_abs_con)*(W*slope+1.0)
-            f_star      =   f_star*(l*slope+1.0)
-        else:
-            f_abs_int   =   np.interp(W,l,f_abs_con)
+        f_abs_int   =   np.interp(W,l,f_abs_con)
                     
-        if ModelType in [3,6]:
-            return f_abs_int, f_star, f_abs_ism, f_abs_bp, f_abs_X
-        else:
-            return f_abs_int, f_star, f_abs_ism, f_abs_bp
+        return f_abs_int, f_abs_ism, f_abs_bp
