@@ -1,0 +1,69 @@
+{
+"directories" : { 
+    "workdir": "/home/paw/science/betapic/data/HST/dat/"
+    }, 
+
+"files" : { 
+    "datafile": "Ly_sky_subtracted_no_central_data_2016_06_21.txt",
+    "flat"	: "flat.fits",
+    "nflat"	: "nflat.fits"
+    },
+
+"display" : {
+    "window"         : {
+        "x1"        : 1197.0,
+        "x2"        : 1203.7,
+        "y1"        : -0.5e-14,
+        "y2"        : 3.4e-14
+        },
+    "bin"       : 5    
+    },
+
+"lines" : {
+    "line"         : {
+        "N1"        : {
+            "Wavelength"    : 1199.5496,
+            "Strength"      : 0.130,
+            "Gamma"         : 0.401e9,
+            "Mass"          : 14.007
+        },
+        "N2"        : {
+            "Wavelength"    : 1200.2233,
+            "Strength"      : 0.862e-1,
+            "Gamma"         : 0.399e9,
+            "Mass"          : 14.007
+        },
+        "N3"        : {
+            "Wavelength"    : 1200.7098,
+            "Strength"      : 0.430e-1,
+            "Gamma"         : 0.398e9,
+            "Mass"          : 14.007
+            }
+        },
+    "total"       : 3    
+    },
+
+"BetaPictoris" : { 
+    "RV": 20.5
+    },
+
+"fit" : {
+    "continuum"     : {
+        "order"     : 3,
+        "start"     : 1198,
+        "stop"      : 1203.5
+    },
+    "ISM"    : {
+        "log(H)"    : 16.5,
+        "RV"        : 10.00,
+        "T"         : 7000,
+        "b"	        : 1.67
+    },
+    "disk" : {    
+        "log(H)"    : 16.2,
+        "RV"        : 20.50,
+        "T"         : 10.0,
+        "b"	        : 32.0
+    }
+    }
+}
