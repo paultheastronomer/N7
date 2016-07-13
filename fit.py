@@ -1,9 +1,14 @@
+#
+#   Sky v0.1 Alpha
+#   Please the required parameters in params.json.
+#
+
 import numpy as np
 import matplotlib.pyplot as plt
-import json
+import json, sys
 from scipy.optimize import leastsq
-import sys
 
+# Load all the def functions used
 from src.calculations import Calc
 from src.model import Model
 from src.statistics import Stats
@@ -31,38 +36,38 @@ def BasicPlot(param,W,F,E):
     plt.ylim(param["display"]["window"]["y1"],param["display"]["window"]["y2"])
     plt.show()
 
-def main():    
+def main():
+    # Read all parameters from params.json file.
     param           = Initialise()
+    
+    # Define the data directory
     dat_directory   = param["directories"]["workdir"]
 
-    ModelType = 1
+    # Select the model type
+    ModelType       = param["fit"]["ModelType"]
 
+    # Load the data file
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
-                      ,unpack=True,skip_header=7300,skip_footer= 8500)
+                      ,unpack=True,skip_header=7400,skip_footer= 8500)
                       
-    #print W[0],W[-1]
-    #sys.exit()
-
-    # RV Values
-    v               = np.arange(-len(W),len(W),1) # RV values
+    # Create an array of RV measurements with a resolution of 1 km/s
+    v               = np.arange(-len(W)-300,len(W)+300,1) # RV values
     
-    # Corresponding wavengths
-    l               = param["lines"]["line"]["N1"]["Wavelength"]*(1.0 + v/3e5)
+    # Calculate the corresponding wavelengths
+    l               = (W[0]+W[-1])/2.*(1.0 + v/3e5)
+    #l               = param["lines"]["line"]["N3"]["Wavelength"]*(1.0 + v/3e5)
     
+    # Select the number of lines to model
     if param["lines"]["total"] == 3:
         L1              = param["lines"]["line"]["N1"]["Wavelength"]*(1.0 + v/3e5)
         L2              = param["lines"]["line"]["N2"]["Wavelength"]*(1.0 + v/3e5)
         L3              = param["lines"]["line"]["N3"]["Wavelength"]*(1.0 + v/3e5)
     
-    
+    # Select the model type
     if ModelType == 1:
-        
-        # Free parameters
-        Par     =   [param["fit"]["disk"]["log(H)"],
-                    param["fit"]["disk"]["RV"]]
-        
+                
         # Fixed paramteres
-        Const   =   [W,l,L1,L2,L3,param["BetaPictoris"]["RV"],
+        Const   =   [W,F,E,l,L1,L2,L3,param["BetaPictoris"]["RV"],
                     
                     # Fixed ISM parameters
                     param["fit"]["ISM"]["log(H)"],
@@ -73,6 +78,10 @@ def main():
                     # Fixed disk parameters
                     param["fit"]["disk"]["b"],
                     param["fit"]["disk"]["T"]]
+
+                    # Free disk parameters
+        Par     =   [param["fit"]["disk"]["log(H)"],
+                    param["fit"]["disk"]["RV"]]
         
         #print "Calculating the best parameters..."
         
@@ -88,6 +97,8 @@ def main():
         #sys.exit()
         
         f_before_fit, f_abs_ism, f_abs_bp   = m.LyModel(P,Const,ModelType,param)
+        
+        plt.errorbar(W,np.ones(len(W))*3e-14,yerr=E)
         plt.step(W,F,color="black")
         plt.plot(W,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
         plt.plot(l,f_abs_ism,color="green",lw=3)

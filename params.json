@@ -9,18 +9,22 @@
     "nflat"	: "nflat.fits"
     },
 
+"instrument" : { 
+    "sigma_kernel"  : 6.5
+    },
+
 "display" : {
-    "window"         : {
+    "window"        : {
         "x1"        : 1197.0,
         "x2"        : 1203.7,
         "y1"        : -0.5e-14,
         "y2"        : 3.4e-14
         },
-    "bin"       : 5    
+    "bin"           : 5    
     },
 
 "lines" : {
-    "line"         : {
+    "line"          : {
         "N1"        : {
             "Wavelength"    : 1199.5496,
             "Strength"      : 0.130,
@@ -48,20 +52,21 @@
     },
 
 "fit" : {
+    "ModelType"     : 1,
     "continuum"     : {
-        "order"     : 3,
+        "order"     : 2,
         "start"     : 1198,
-        "stop"      : 1203.5
+        "stop"      : 1203.25
     },
     "ISM"    : {
-        "log(H)"    : 16.5,
+        "log(H)"    : 13.8,
         "RV"        : 10.00,
         "T"         : 7000,
         "b"	        : 1.67
     },
     "disk" : {    
-        "log(H)"    : 16.2,
-        "RV"        : 20.50,
+        "log(H)"    : 14.7,
+        "RV"        : 31.50,
         "T"         : 10.0,
         "b"	        : 32.0
     }
