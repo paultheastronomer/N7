@@ -36,6 +36,12 @@ def BasicPlot(param,W,F,E):
     plt.ylim(param["display"]["window"]["y1"],param["display"]["window"]["y2"])
     plt.show()
 
+def PrintParams(P):
+    print "\tlog(N/1cm^2)\t=\t",P[0]
+    print "\t   v\t\t=\t",P[1],"km/s"
+    print "\t   b\t\t=\t",P[2],"km/s"
+    print "\n"
+
 def main():
     # Read all parameters from params.json file.
     param           = Initialise()
@@ -76,12 +82,12 @@ def main():
                     param["fit"]["ISM"]["T"],
                     
                     # Fixed disk parameters
-                    param["fit"]["disk"]["b"],
                     param["fit"]["disk"]["T"]]
 
                     # Free disk parameters
         Par     =   [param["fit"]["disk"]["log(H)"],
-                    param["fit"]["disk"]["RV"]]
+                    param["fit"]["disk"]["RV"],
+                    param["fit"]["disk"]["b"]]
         
         #print "Calculating the best parameters..."
         
@@ -89,11 +95,13 @@ def main():
         #param["fit"]["continuum"]["start"],param["fit"]["continuum"]["stop"])
         #'''
         #X = F, E, m.LyModel(Par, Const, ModelType)[0]
-        print Par
-        print "\nBest fit paramters:"
+        #print "\nFixed parameters"
+        #PrintParams(Const)
+        print "\nStarting paramters:"        
+        PrintParams(Par)
         P =  FindBestParams(Par, F, E, Const, ModelType, param)
-        
-        print P
+        print "Best fit paramters:"
+        PrintParams(P)
         #sys.exit()
         
         f_before_fit, f_abs_ism, f_abs_bp   = m.LyModel(P,Const,ModelType,param)
