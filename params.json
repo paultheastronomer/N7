@@ -4,7 +4,7 @@
     }, 
 
 "files" : { 
-    "datafile": "Ly_sky_subtracted_no_central_data_2016_06_21.txt"
+    "datafile": "Ly_sky_subtracted_2016_07_27.txt"
     },
 
 "instrument" : { 
@@ -52,21 +52,21 @@
 "fit" : {
     "ModelType"     : 1,
     "continuum"     : {
-        "order"     : 2,
+        "order"     : 3,
         "start"     : 1198,
         "stop"      : 1203.25
     },
     "ISM"    : {
         "log(H)"    : 13.8,
         "RV"        : 10.00,
-        "T"         : 7000,
-        "b"	        : 1.67
+        "T"         : 5000,
+        "b"	        : 2.50
     },
     "disk" : {    
         "log(H)"    : 14.7,
-        "RV"        : 31.50,
-        "T"         : 10.0,
-        "b"	        : 12.0
+        "RV"        : 18.80,
+        "T"         : 500.0,
+        "b"	        : 2.0
     }
     }
 }

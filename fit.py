@@ -39,7 +39,7 @@ def BasicPlot(param,W,F,E):
 def PrintParams(P):
     print "\tlog(N/1cm^2)\t=\t",P[0]
     print "\t   v\t\t=\t",P[1],"km/s"
-    print "\t   b\t\t=\t",P[2],"km/s"
+    #print "\t   b\t\t=\t",P[2],"km/s"
     print "\n"
 
 def main():
@@ -61,13 +61,12 @@ def main():
     
     # Calculate the corresponding wavelengths
     l               = (W[0]+W[-1])/2.*(1.0 + v/3e5)
-    #l               = param["lines"]["line"]["N3"]["Wavelength"]*(1.0 + v/3e5)
     
     # Select the number of lines to model
     if param["lines"]["total"] == 3:
-        L1              = param["lines"]["line"]["N1"]["Wavelength"]*(1.0 + v/3e5)
-        L2              = param["lines"]["line"]["N2"]["Wavelength"]*(1.0 + v/3e5)
-        L3              = param["lines"]["line"]["N3"]["Wavelength"]*(1.0 + v/3e5)
+        L1  = param["lines"]["line"]["N1"]["Wavelength"]*(1.0 + v/3e5)
+        L2  = param["lines"]["line"]["N2"]["Wavelength"]*(1.0 + v/3e5)
+        L3  = param["lines"]["line"]["N3"]["Wavelength"]*(1.0 + v/3e5)
     
     # Select the model type
     if ModelType == 1:
@@ -82,12 +81,13 @@ def main():
                     param["fit"]["ISM"]["T"],
                     
                     # Fixed disk parameters
+                    param["fit"]["disk"]["b"],
                     param["fit"]["disk"]["T"]]
 
                     # Free disk parameters
         Par     =   [param["fit"]["disk"]["log(H)"],
-                    param["fit"]["disk"]["RV"],
-                    param["fit"]["disk"]["b"]]
+                    param["fit"]["disk"]["RV"]]#,
+                    #param["fit"]["disk"]["b"]]
         
         #print "Calculating the best parameters..."
         
@@ -106,7 +106,7 @@ def main():
         
         f_before_fit, f_abs_ism, f_abs_bp   = m.LyModel(P,Const,ModelType,param)
         
-        plt.errorbar(W,np.ones(len(W))*3e-14,yerr=E)
+        plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
         plt.step(W,F,color="black")
         plt.plot(W,f_before_fit,lw=3,color='#FF281C',label=r'Best fit')
         plt.plot(l,f_abs_ism,color="green",lw=3)

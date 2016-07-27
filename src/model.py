@@ -136,10 +136,10 @@ class Model:
         
         if ModelType == 1:
             # Free parameters
-            nh_bp, v_bp, b_bp     = params
+            nh_bp, v_bp     = params
  
             # Fixed parameters
-            W,F,E,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,T_bp   = Const
+            W,F,E,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,b_bp,T_bp   = Const
         '''
         l = []
         #W = []
