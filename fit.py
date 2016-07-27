@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import json, sys
 from scipy.optimize import leastsq
 
-# Load all the def functions used
+# Load all the custom def functions used
 from src.calculations import Calc
 from src.model import Model
 from src.statistics import Stats
