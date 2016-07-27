@@ -4,9 +4,7 @@
     }, 
 
 "files" : { 
-    "datafile": "Ly_sky_subtracted_no_central_data_2016_06_21.txt",
-    "flat"	: "flat.fits",
-    "nflat"	: "nflat.fits"
+    "datafile": "Ly_sky_subtracted_no_central_data_2016_06_21.txt"
     },
 
 "display" : {
