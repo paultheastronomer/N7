@@ -7,7 +7,6 @@ class Model:
     '''
         
     def voigt_wofz(self, a, u):
-
         ''' Compute the Voigt function using Scipy's wofz().
 
         # Code from https://github.com/nhmc/Barak/blob/\
@@ -54,24 +53,26 @@ class Model:
         return kernel
 
 
-        
-    def Continuum(self, LyA,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit):  
+    def Continuum(self, param, l, W, F, E):  
 
-        # Double Voigt profile
-        delta_lambda =   LyA*(BetaPicRV/3e5)
-         
-        lambda0 =   LyA                     # Lyman alpha center
-        lambda1 =   LyA -dp + delta_lambda  # blue peak center
-        lambda2 =   LyA +dp + delta_lambda  # red peak center
-        u1      =   uf*(l-lambda1)          # blue peak wavelengths
-        u2      =   uf*(l-lambda2)          # red peak wavelengths
+        fit_start   = param["fit"]["continuum"]["start"]
+        fit_end     = param["fit"]["continuum"]["stop"]
+        
+        s_i = []
+        for i in range(len(W)):
+            if fit_start < W[i] < fit_end:
+                s_i.append(i)
+        
+        fitting_region_x    = W[s_i[0]:s_i[-1]]
+        fitting_region_y    = F[s_i[0]:s_i[-1]]
+        fitting_region_err  = E[s_i[0]:s_i[-1]]
+        
 
-        f       =   max_f*(self.voigt_wofz(av,u1)+self.voigt_wofz(av,u2))
-        f       += continuum_fit
-        f_star  =   np.convolve(f,kernel,mode='same')
-        
-        return f, f_star
-        
+        weights     = 1./fitting_region_err**2
+        z           = np.polyfit(fitting_region_x, fitting_region_y, param["fit"]["continuum"]["order"], rcond=None, full=False)#, w=weights)
+        pn          = np.poly1d(z)
+        f           = pn(l)
+        return f        
 
     def absorption(self, l,v_bp,nh,vturb,T,param):
         
@@ -129,20 +130,16 @@ class Model:
         ========================================================================
         No extra components but the H absorption is not fixed to the beta pic
         reference frame, but is free to vary.
-        ========================================================================            
-                
+        ========================================================================                 
         '''
-        
-        sigma_kernel = 6.5
-        s1 = param["fit"]["continuum"]["start"]
-        s2 = param["fit"]["continuum"]["stop"]
+        sigma_kernel    = param["instrument"]["sigma_kernel"]
         
         if ModelType == 1:
             # Free parameters
-            nh_bp, v_bp     = params
+            nh_bp, v_bp, b_bp     = params
  
             # Fixed parameters
-            W,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,b_bp,T_bp   = Const
+            W,F,E,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,T_bp   = Const
         '''
         l = []
         #W = []
@@ -158,7 +155,7 @@ class Model:
         #W = np.array(W)
         '''
         
-        kernel      =   self.K(W,l,sigma_kernel)
+        kernel      =   self.K(W, l, sigma_kernel)
 
         # Calculates the ISM absorption
         abs_ism     =   self.absorption(l,v_ism,nh_ism,b_ism,T_ism,param)
@@ -166,7 +163,7 @@ class Model:
 
 
         # Continuum line
-        f   =   np.ones(len(l))*1.0e-14#self.Continuum(L1,BetaPicRV,l,kernel,max_f,dp,uf,av,continuum_fit)
+        f           =   self.Continuum(param, l, W, F, E)
        
         # Stellar spectral profile, as seen from Earth
         # after absorption by the ISM and BP CS disk.
@@ -179,8 +176,6 @@ class Model:
         
         # Absorption by beta Pictoris  
         f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')
-
-
         
         # Interpolation on COS wavelengths, relative to the star
         f_abs_int   =   np.interp(W,l,f_abs_con)
