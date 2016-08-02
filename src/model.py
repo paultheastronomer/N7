@@ -54,22 +54,16 @@ class Model:
 
 
     def Continuum(self, param, l, W, F, E):  
-
-        fit_start   = param["fit"]["continuum"]["start"]
-        fit_end     = param["fit"]["continuum"]["stop"]
         
-        s_i = []
-        for i in range(len(W)):
-            if fit_start < W[i] < fit_end:
-                s_i.append(i)
+        c1  = param["fit"]["continuum"]["cut1"]
+        c2  = param["fit"]["continuum"]["cut2"]
         
-        fitting_region_x    = W[s_i[0]:s_i[-1]]
-        fitting_region_y    = F[s_i[0]:s_i[-1]]
-        fitting_region_err  = E[s_i[0]:s_i[-1]]
+        W = np.concatenate((W[:c1],W[-c2:]))
+        F = np.concatenate((F[:c1],F[-c2:]))
+        E = np.concatenate((E[:c1],E[-c2:]))
         
-
-        weights     = 1./fitting_region_err**2
-        z           = np.polyfit(fitting_region_x, fitting_region_y, param["fit"]["continuum"]["order"], rcond=None, full=False)#, w=weights)
+        weights     = 1./E#**2 # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2). https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+        z           = np.polyfit(W, F, param["fit"]["continuum"]["order"], rcond=None, full=False)#, w=weights)
         pn          = np.poly1d(z)
         f           = pn(l)
         return f        
@@ -93,7 +87,7 @@ class Model:
                   param["lines"]["line"]["N2"]["Gamma"],
                   param["lines"]["line"]["N3"]["Gamma"]]) /(4.*np.pi)
         
-        N_col   = np.array([1.,1.,1.,1.])*10**nh
+        N_col   = np.array([1.,1.,1.])*10**nh
         
         c       = 2.99793e14
         k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
@@ -136,10 +130,10 @@ class Model:
         
         if ModelType == 1:
             # Free parameters
-            nh_bp, v_bp     = params
+            nh_bp     = params
  
             # Fixed parameters
-            W,F,E,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,b_bp,T_bp   = Const
+            W,F,E,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp   = Const
         '''
         l = []
         #W = []
