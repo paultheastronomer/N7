@@ -55,15 +55,15 @@ class Model:
 
     def Continuum(self, param, l, W, F, E):  
         
-        c1  = param["fit"]["continuum"]["cut1"]
-        c2  = param["fit"]["continuum"]["cut2"]
+        c1  = param["fit"]["windows"]["window1"]["cut1"]
+        c2  = param["fit"]["windows"]["window1"]["cut2"]
         
         W = np.concatenate((W[:c1],W[-c2:]))
         F = np.concatenate((F[:c1],F[-c2:]))
         E = np.concatenate((E[:c1],E[-c2:]))
         
         weights     = 1./E#**2 # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2). https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        z           = np.polyfit(W, F, param["fit"]["continuum"]["order"], rcond=None, full=False)#, w=weights)
+        z           = np.polyfit(W, F, param["fit"]["windows"]["window1"]["order"], rcond=None, full=False)#, w=weights)
         pn          = np.poly1d(z)
         f           = pn(l)
         return f        
@@ -114,6 +114,82 @@ class Model:
                     
         return abs_ism
 
+    def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
+        
+        if Nwindows == 1:
+            W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X = Const
+        if Nwindows == 2:
+            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X = Const
+
+        b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+
+        kernel1      =   self.K(W1, l1, sigma_kernel)
+
+        # Calculates the ISM absorption
+        abs_ism1     =   self.absorption(l1,v_ism,nh_ism,b_ism,T_ism,param)
+        abs_bp1      =   self.absorption(l1,v_bp,nh_bp,b_bp,T_bp,param)
+        abs_X1       =   self.absorption(l1,v_X,nh_X,b_X,T_X,param)
+        
+        # Continuum line
+        f1           =   self.Continuum(param, l1, W1, F1, E1)
+        
+        # Stellar spectral profile, as seen from Earth
+        # after absorption by the ISM and BP CS disk.
+        # Profile has been convolved with HST LSF
+        #    -  in (erg cm-2 s-1 A-1)
+        
+        f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1*abs_X1, kernel1, mode='same')
+
+        # Absorption by ISM
+        f_abs_ism1   =   np.convolve(f1*abs_ism1, kernel1, mode='same')        
+
+        # Absorption by beta Pictoris  
+        f_abs_bp1    =   np.convolve(f1*abs_bp1, kernel1, mode='same')
+
+        # Absorption by exocomets  
+        f_abs_X1    =    np.convolve(f1*abs_X1, kernel1, mode='same')
+
+        # Interpolation on COS wavelengths, relative to the star
+        f_abs_int1   =   np.interp(W1,l1,f_abs_con1)
+                
+
+        if Nwindows == 2:
+
+            kernel2      =   self.K(W2, l2, sigma_kernel)
+
+            # Calculates the ISM absorption
+            abs_ism2     =   self.absorption(l2,v_ism,nh_ism,b_ism,T_ism,param)
+            abs_bp2      =   self.absorption(l2,v_bp,nh_bp,b_bp,T_bp,param)
+            abs_X2       =   self.absorption(l2,v_X,nh_X,b_X,T_X,param)
+            
+            # Continuum line
+            f2           =   self.Continuum(param, l2, W2, F2, E2)
+            
+            # Stellar spectral profile, as seen from Earth
+            # after absorption by the ISM and BP CS disk.
+            # Profile has been convolved with HST LSF
+            #    -  in (erg cm-2 s-1 A-1)
+            
+            f_abs_con2   =   np.convolve(f2*abs_ism2*abs_bp2*abs_X2, kernel2, mode='same')
+
+            # Absorption by ISM
+            f_abs_ism2   =   np.convolve(f2*abs_ism2, kernel2, mode='same')        
+
+            # Absorption by beta Pictoris  
+            f_abs_bp2    =   np.convolve(f2*abs_bp2, kernel2, mode='same')
+
+            # Absorption by exocomets  
+            f_abs_X2    =    np.convolve(f2*abs_X2, kernel2, mode='same')
+
+            # Interpolation on COS wavelengths, relative to the star
+            f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
+        
+        if Nwindows == 1:
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1
+        
+        if Nwindows == 2:
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2
+
 
     def LyModel(self, params, Const, ModelType, param):
         
@@ -127,51 +203,19 @@ class Model:
         ========================================================================                 
         '''
         sigma_kernel    = param["instrument"]["sigma_kernel"]
-        
-        if ModelType == 1:
-            # Free parameters
-            nh_bp     = params
- 
+
+        # Free parameters
+        b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+
+        Nwindows    = param["fit"]["windows"]["number"]
+
+        if Nwindows == 1:
             # Fixed parameters
-            W,F,E,l,L1,L2,L3,BetaPicRV,nh_ism,v_ism,b_ism,T_ism,v_bp,b_bp,T_bp   = Const
-        '''
-        l = []
-        #W = []
-        for i in range(len(lw)):
-            if s1 <= lw[i] <= s2:
-                l.append(lw[i])
-        #for i in range(len(w)):
-        #    if s1 <= w[i] <= s2:
-        #        W.append(w[i])
-        
-        l = np.array(l)
-        W = w
-        #W = np.array(W)
-        '''
-        
-        kernel      =   self.K(W, l, sigma_kernel)
+            W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
+            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1 = self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
+        if Nwindows == 2:
+            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
+            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2 = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
 
-        # Calculates the ISM absorption
-        abs_ism     =   self.absorption(l,v_ism,nh_ism,b_ism,T_ism,param)
-        abs_bp      =   self.absorption(l,v_bp,nh_bp,b_bp,T_bp,param)
-
-
-        # Continuum line
-        f           =   self.Continuum(param, l, W, F, E)
-       
-        # Stellar spectral profile, as seen from Earth
-        # after absorption by the ISM and BP CS disk.
-        # Profile has been convolved with HST LSF
-        #    -  in (erg cm-2 s-1 A-1)
-        
-        f_abs_con   =   np.convolve(f*abs_ism*abs_bp, kernel, mode='same')
-        
-        f_abs_ism   =   np.convolve(f*abs_ism, kernel, mode='same')
-        
-        # Absorption by beta Pictoris  
-        f_abs_bp    =   np.convolve(f*abs_bp, kernel, mode='same')
-        
-        # Interpolation on COS wavelengths, relative to the star
-        f_abs_int   =   np.interp(W,l,f_abs_con)
                     
-        return f_abs_int, f_abs_ism, f_abs_bp
+        return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2

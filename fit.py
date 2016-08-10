@@ -39,6 +39,8 @@ def BasicPlot(param,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,x1,x2,y1,y2):
         plt.step(Wb[:c1/bin_size],Fb[:c1/bin_size],color="red")
         plt.step(Wb[-c2/bin_size:],Fb[-c2/bin_size:],color="red")
     else:
+        line = param["lines"]["line"]["Nw1"]["Wavelength"]
+        plt.plot([line,line],[0.2e-14,0.3e-14],color='black')
         plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
         plt.step(W,F)
         plt.step(W[:c1],F[:c1],color="red")
@@ -69,6 +71,26 @@ def PrintParams(P):
     print "\t     b\t\t=\t",P[5],"km/s"
     print "-"*50,"\n"
 
+def Window(param,W,F,E,WindowName):
+    fit_start   = param["fit"]["windows"][WindowName]["start"]
+    fit_end     = param["fit"]["windows"][WindowName]["stop"]
+
+    s_i = []
+    for i in range(len(W)):
+        if fit_start <= W[i] <= fit_end:
+            s_i.append(i)
+    
+    W    = W[s_i[0]:s_i[-1]]
+    F    = F[s_i[0]:s_i[-1]]
+    E    = E[s_i[0]:s_i[-1]]
+
+    # Create an array of RV measurements with a resolution of 1 km/s
+    v    = np.arange(-len(W)-250,len(W)+250,1) # RV values
+
+    # Calculate the corresponding wavelengths
+    l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
+    return W, F, E, v, l
+
 def main():
     # Read all parameters from params.json file.
     param           = Initialise()
@@ -83,87 +105,57 @@ def main():
 
     # Load the data file
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
-                      ,unpack=True)
+                      ,unpack=True) 
 
+    if Nwindows == 1:
+        W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
+        ConstA              = [W,F,E,l]
+    
     if Nwindows == 2:
-        fit_start_w1   = param["fit"]["windows"]["window1"]["start"]
-        fit_end_w1     = param["fit"]["windows"]["window1"]["stop"]
+        W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
+        W2, F2, E2, v2, l2  = Window(param,W,F,E,"window2")
+        ConstA              = [W1,W2,F1,F2,E1,E2,l1,l2]
 
-        fit_start_w2   = param["fit"]["windows"]["window2"]["start"]
-        fit_end_w2     = param["fit"]["windows"]["window2"]["stop"]
-    
-        s1_i = []
-        s2_i = []
-        for i in range(len(W)):
-            if fit_start_w1 <= W[i] <= fit_end_w1:
-                s1_i.append(i)
-            if fit_start_w2 <= W[i] <= fit_end_w2:
-                s2_i.append(i)
-        
-        W1    = W[s1_i[0]:s1_i[-1]]
-        F1    = F[s1_i[0]:s1_i[-1]]
-        E1    = E[s1_i[0]:s1_i[-1]]
-
-        W2    = W[s2_i[0]:s2_i[-1]]
-        F2    = F[s2_i[0]:s2_i[-1]]
-        E2    = E[s2_i[0]:s2_i[-1]]
-                      
-        # Create an array of RV measurements with a resolution of 1 km/s
-        v1    = np.arange(-len(W1)-250,len(W1)+250,1) # RV values
-        v2    = np.arange(-len(W2)-250,len(W2)+250,1) # RV values
-    
-        # Calculate the corresponding wavelengths
-        l1    = (W1[0]+W1[-1])/2.*(1.0 + v1/3e5)
-        l2    = (W2[0]+W2[-1])/2.*(1.0 + v2/3e5)
-    
-    # Select the number of lines to model
-    if param["lines"]["total"] == 5:
-        L1  = param["lines"]["line"]["N1"]["Wavelength"]*(1.0 + v1/3e5)
-        L2  = param["lines"]["line"]["N2"]["Wavelength"]*(1.0 + v1/3e5)
-        L3  = param["lines"]["line"]["N3"]["Wavelength"]*(1.0 + v1/3e5)
-        
-        L4  = param["lines"]["line"]["Nw1"]["Wavelength"]*(1.0 + v2/3e5)
-        L5  = param["lines"]["line"]["Nw2"]["Wavelength"]*(1.0 + v2/3e5)
-    
-    # Select the model type
-    if ModelType == 1:
+    # The parameters listed in ConstB are not dependant on the number of windows used.
+    # ConstA is.       
+    ConstB   =  [param["BetaPictoris"]["RV"],
                 
-        # Fixed paramteres
-        Const   =   [W1,W2,F1,F2,E1,E2,l1,l2,L1,L2,L3,L4,L5,param["BetaPictoris"]["RV"],
-                    
-                    # Fixed ISM parameters
-                    param["fit"]["ISM"]["log(H)"],
-                    param["fit"]["ISM"]["RV"],
-                    param["fit"]["ISM"]["T"],
-                    
-                    # Fixed CS parameters
-                    param["fit"]["disk"]["RV"],
-                    param["fit"]["disk"]["T"],
-                    
-                    param["fit"]["exocomet"]["T"]]
+                # Fixed ISM parameters
+                param["fit"]["ISM"]["log(H)"],
+                param["fit"]["ISM"]["RV"],
+                param["fit"]["ISM"]["T"],
+                
+                # Fixed CS parameters
+                param["fit"]["disk"]["RV"],
+                param["fit"]["disk"]["T"],
+                
+                # Fixed exocomet parameters
+                param["fit"]["exocomet"]["T"]]
 
-                    # Free ISM parameters
-        Par     =   [param["fit"]["ISM"]["b"],
-                    
-                    # Free CS parameters
-                    param["fit"]["disk"]["log(H)"],
-                    param["fit"]["disk"]["b"],
-                    
-                    # Free exocomet parameters
-                    param["fit"]["exocomet"]["log(H)"],
-                    param["fit"]["exocomet"]["RV"],
-                    param["fit"]["exocomet"]["b"]]
-        
-        print "\nStarting paramters:"        
-        PrintParams(Par)
-        P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
-        print "Best fit paramters:"
-        PrintParams(P)
-        
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2   = m.LyModel(P,Const,ModelType,param)
+    Const   =   np.concatenate((ConstA,ConstB))
+    
+                # Free ISM parameters
+    Par     =   [param["fit"]["ISM"]["b"],
+                
+                # Free CS parameters
+                param["fit"]["disk"]["log(H)"],
+                param["fit"]["disk"]["b"],
+                
+                # Free exocomet parameters
+                param["fit"]["exocomet"]["log(H)"],
+                param["fit"]["exocomet"]["RV"],
+                param["fit"]["exocomet"]["b"]]
+    
+    print "\nStarting paramters:"        
+    PrintParams(Par)
+    P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
+    print "Best fit paramters:"
+    PrintParams(P)
 
-        BasicPlot(param, W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1,param["display"]["window1"]["x1"],param["display"]["window1"]["x2"],param["display"]["window1"]["y1"],param["display"]["window1"]["y2"])
-        BasicPlot(param, W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2,param["display"]["window2"]["x1"],param["display"]["window2"]["x2"],param["display"]["window2"]["y1"],param["display"]["window2"]["y2"])
+    f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2   = m.LyModel(P,Const,ModelType,param)
+
+    #BasicPlot(param, W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1,param["display"]["window1"]["x1"],param["display"]["window1"]["x2"],param["display"]["window1"]["y1"],param["display"]["window1"]["y2"])
+    BasicPlot(param, W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2,param["display"]["window2"]["x1"],param["display"]["window2"]["x2"],param["display"]["window2"]["y1"],param["display"]["window2"]["y2"])
 
 
 if __name__ == '__main__':
