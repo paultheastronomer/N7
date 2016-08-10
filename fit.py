@@ -26,7 +26,7 @@ def FindBestParams(params,F,E,Const,ModelType, param):
     best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=1000)
     return best_P
 
-def BasicPlot(param,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
+def BasicPlot(param,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,x1,x2,y1,y2):
 
     c1  = param["fit"]["windows"]["window1"]["cut1"]
     c2  = param["fit"]["windows"]["window1"]["cut2"]
@@ -41,15 +41,15 @@ def BasicPlot(param,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
     else:
         plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
         plt.step(W,F)
-        plt.step(Wb[:c1],F[:c1],color="red")
+        plt.step(W[:c1],F[:c1],color="red")
         plt.step(W[-c2:],F[-c2:],color="red")
     
     plt.plot(W,f_fit,lw=3,color='#FF281C',label=r'Best fit')
     plt.plot(l,f_abs_ism,color="green",lw=3)
     plt.plot(l,f_abs_bp,color="blue",lw=3)   
     plt.plot(l,f_abs_X,color="purple",lw=3)  
-    plt.xlim(param["display"]["window1"]["x1"],param["display"]["window1"]["x2"])
-    plt.ylim(param["display"]["window1"]["y1"],param["display"]["window1"]["y2"])
+    plt.xlim(x1,x2)
+    plt.ylim(y1,y2)
     plt.show()
 
 def PrintParams(P):
@@ -88,6 +88,9 @@ def main():
     if Nwindows == 2:
         fit_start_w1   = param["fit"]["windows"]["window1"]["start"]
         fit_end_w1     = param["fit"]["windows"]["window1"]["stop"]
+
+        fit_start_w2   = param["fit"]["windows"]["window2"]["start"]
+        fit_end_w2     = param["fit"]["windows"]["window2"]["stop"]
     
         s1_i = []
         s2_i = []
@@ -97,13 +100,13 @@ def main():
             if fit_start_w2 <= W[i] <= fit_end_w2:
                 s2_i.append(i)
         
-        W1    = W1[s1_i[0]:s1_i[-1]]
-        F1    = F1[s1_i[0]:s1_i[-1]]
-        E1    = E1[s1_i[0]:s1_i[-1]]
+        W1    = W[s1_i[0]:s1_i[-1]]
+        F1    = F[s1_i[0]:s1_i[-1]]
+        E1    = E[s1_i[0]:s1_i[-1]]
 
-        W2    = W2[s2_i[0]:s2_i[-1]]
-        F2    = F2[s2_i[0]:s2_i[-1]]
-        E2    = E2[s2_i[0]:s2_i[-1]]
+        W2    = W[s2_i[0]:s2_i[-1]]
+        F2    = F[s2_i[0]:s2_i[-1]]
+        E2    = E[s2_i[0]:s2_i[-1]]
                       
         # Create an array of RV measurements with a resolution of 1 km/s
         v1    = np.arange(-len(W1)-250,len(W1)+250,1) # RV values
@@ -153,13 +156,14 @@ def main():
         
         print "\nStarting paramters:"        
         PrintParams(Par)
-        P =  FindBestParams(Par, F, E, Const, ModelType, param)
+        P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
         print "Best fit paramters:"
         PrintParams(P)
         
-        f_fit, f_abs_ism, f_abs_bp, f_abs_X   = m.LyModel(P,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2   = m.LyModel(P,Const,ModelType,param)
 
-        BasicPlot(param, W, F, E, l, f_fit, f_abs_ism, f_abs_bp, f_abs_X)
+        BasicPlot(param, W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1,param["display"]["window1"]["x1"],param["display"]["window1"]["x2"],param["display"]["window1"]["y1"],param["display"]["window1"]["y2"])
+        BasicPlot(param, W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2,param["display"]["window2"]["x1"],param["display"]["window2"]["x2"],param["display"]["window2"]["y1"],param["display"]["window2"]["y2"])
 
 
 if __name__ == '__main__':
