@@ -9,6 +9,8 @@ This code is currently being built and is not fit for use. The work using this c
 
 **fit.py** - Fits the nitrogen tripplet using voigt profiles and estimates column densities.
 
-**exocomets.py** - Shows a simple plot of spectra centered around the region of the NI line.
+**plots/exocomets.py** - Shows a simple plot of spectra centered around the region of the NI line.
 
-**src/convert2owens.py** - Converts a general text file into a **owens.f** friendly format.
+**convert2owens.py** - Converts a general text file into a **owens.f** friendly format.
+
+**RotBroad.py** - Applies rotational broadening to a given spectrum using the formulae given in Gray’s “The Observation and Analysis of Stellar Photospheres”. It allows for limb darkening parameterized by the linear limb-darkening law. The code has been adapted from [pyatronomy](http://pyastronomy.readthedocs.io/en/latest/pyaslDoc/aslDoc/rotBroad.html)
