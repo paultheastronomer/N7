@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 import json, sys
 from scipy.optimize import leastsq
 
+from colorama import init
+init()
+from colorama import Fore, Back, Style
+
 # Load all the custom def functions used
 from src.calculations import Calc
 from src.model import Model
@@ -61,24 +65,45 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
     plt.ylim(y1,y2)
     plt.show()
 
-def PrintParams(P):
+def PrintParams(P, ConstB):
     print "\nISM:"
     print "-"*50
+    print(Fore.GREEN)
+    print "Free parameters:\n"
     print "\t     b\t\t=\t",P[0],"km/s"
+    print(Fore.RED)
+    print "\nConstant parameters:\n"
+    print "\tlog(N/1cm^2)\t=\t",ConstB[1],"km/s"
+    print "\t    RV\t\t=\t",ConstB[2],"km/s"
+    print "\t     T\t\t=\t",ConstB[3],"K"
+    print(Style.RESET_ALL) 
     print "-"*50,"\n"
 
     print "\nCS:"
     print "-"*50
+    print(Fore.GREEN)
+    print "Free parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",P[1]
     print "\t     b\t\t=\t",P[2],"km/s"
+    print(Fore.RED)
+    print "\nConstant parameters:\n"
+    print "\t    RV\t\t=\t",ConstB[4],"km/s"
+    print "\t     T\t\t=\t",ConstB[5],"K"
+    print(Style.RESET_ALL)
     print "-"*50,"\n"
 
     print "\nExocomet:"
     print "-"*50
+    print(Fore.GREEN)
+    print "Free parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",P[3],"km/s"
     print "\t    RV\t\t=\t",P[4],"km/s"
     print "\t     b\t\t=\t",P[5],"km/s"
-    print "-"*50,"\n"
+    print(Fore.RED)
+    print "\nConstant parameters:\n"
+    print "\t     T\t\t=\t",ConstB[6],"K"
+    print(Style.RESET_ALL)
+    print "-"*50,"\n\n\n"
 
 def Window(param,W,F,E,WindowName):
     fit_start   = param["fit"]["windows"][WindowName]["start"]
@@ -155,17 +180,19 @@ def main():
                 param["fit"]["exocomet"]["RV"],
                 param["fit"]["exocomet"]["b"]]
     
-    print "\nStarting paramters:"        
-    PrintParams(Par)
-    P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
-    print "Best fit paramters:"
-    PrintParams(P)
+    print "\nStarting paramters:"
+   
+    PrintParams(Par, ConstB)
+    #P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
+    #print "Best fit paramters:"
+    #PrintParams(P, ConstB)
     
     if Nwindows == 1:
         f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1 = m.LyModel(Par,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1)    
     if Nwindows == 2:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2 = m.LyModel(Par,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2 = m.LyModel(P,Const,ModelType,param)
+        BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1) 
         BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2)
 
 

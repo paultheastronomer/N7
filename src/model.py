@@ -39,7 +39,7 @@ class Model:
         Dispersion of the theoretical wavelength range
         np.roll is equivalent to the IDL shift function
         '''
-        dispersion          =   9.97e-3                 # Ang /pix
+        dispersion          = 9.97e-3   # Ang /pix
         dl                  = np.mean((l-np.roll(l,1))[1:])
         # dl is the step size of the wavelength on which "kernel" is to be calculated.
         dwave               = np.median((W-np.roll(W,1))[1:])
@@ -65,7 +65,7 @@ class Model:
         weights     = 1./E
         # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2).
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False)#, w=weights)
+        z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False, w=weights)
         pn          = np.poly1d(z)
         f           = pn(l)
         return f        
@@ -89,6 +89,7 @@ class Model:
             delta   = np.array([param["lines"]["line"]["N1"]["Gamma"],
                       param["lines"]["line"]["N2"]["Gamma"],
                       param["lines"]["line"]["N3"]["Gamma"]]) /(4.*np.pi)
+            
             N_col   = np.array([1.,1.,1.])*10**nh
         
         if Nwindows == 2:
@@ -116,6 +117,7 @@ class Model:
                       param["lines"]["line"]["N3"]["Gamma"],
                       param["lines"]["line"]["Nw1"]["Gamma"],
                       param["lines"]["line"]["Nw2"]["Gamma"]]) /(4.*np.pi)                
+            
             N_col   = np.array([1.,1.,1.,1.,1.])*10**nh
         
         c       = 2.99793e14
@@ -245,6 +247,7 @@ class Model:
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1
 
         if Nwindows == 2:
+            # Fixed parameters
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
             f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2 = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2
