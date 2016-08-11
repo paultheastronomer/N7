@@ -4,7 +4,7 @@
     }, 
 
 "files" : { 
-    "datafile": "NI_no2014_owens.dat"
+    "datafile": "B132L09W.dat"
     },
 
 "instrument" : { 
@@ -12,13 +12,21 @@
     },
 
 "display" : {
-    "window"        : {
-        "x1"        : 1198.25,
-        "x2"        : 1202.11,
+    "window1"        : {
+        "name"      : "window1",
+        "x1"        : 1198.7,
+        "x2"        : 1201.42,
         "y1"        : -0.1e-14,
         "y2"        : 2.4e-14
         },
-    "bin"           : 3    
+    "window2"        : {
+        "name"      : "window2",
+        "x1"        : 1159.4,
+        "x2"        : 1161.5,
+        "y1"        : -0.1e-14,
+        "y2"        : 1.0e-14
+        },
+    "bin"           : 1    
     },
 
 "lines" : {
@@ -40,9 +48,20 @@
             "Strength"      : 0.430e-1,
             "Gamma"         : 0.398e9,
             "Mass"          : 14.007
-            }
+            },
+        "Nw1"        : {
+            "Wavelength"    : 1159.8168,
+            "Strength"      : 0.851e-5,
+            "Gamma"         : 0.422e5,
+            "Mass"          : 14.007
         },
-    "total"       : 3    
+        "Nw2"        : {
+            "Wavelength"    : 1160.9366,
+            "Strength"      : 0.240e-05,
+            "Gamma"         : 0.238e5,
+            "Mass"          : 14.007
+        }
+        }
     },
 
 "BetaPictoris" : { 
@@ -50,25 +69,40 @@
     },
 
 "fit" : {
-    "ModelType"     : 1,
-    "continuum"     : {
-        "order"     : 2,
-        "start"     : 1198.40,
-        "stop"      : 1202.00,
-        "cut1"      : 80,
-        "cut2"      : 60
+    "windows"     : {
+        "number" : 2,
+        "window1"     : {
+            "order"     : 2,
+            "start"     : 1198.40,
+            "stop"      : 1202.00,
+            "cut1"      : 90,
+            "cut2"      : 70
+        },
+        "window2"     : {
+            "order"     : 1,
+            "start"     : 1159.40,
+            "stop"      : 1161.50,
+            "cut1"      : 30,
+            "cut2"      : 70
+        }
     },
     "ISM"    : {
         "log(H)"    : 15.21,
         "RV"        : 10.00,
         "T"         : 6000,
-        "b"	        : 2.90
+        "b"	        : 5.84
     },
     "disk" : {    
-        "log(H)"    : 18.0,
+        "log(H)"    : 14.48,
         "RV"        : 20.50,
-        "T"         : 500.0,
-        "b"	        : 2.5
-    }
+        "T"         : 10.0,
+        "b"	        : 6.65
+    },
+    "exocomet" : {    
+        "log(H)"    : 16.67,
+        "RV"        : 39.00,
+        "T"         : 10.0,
+        "b"	        : 0.02
+    }    
     }
 }

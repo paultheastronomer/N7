@@ -26,10 +26,15 @@ def FindBestParams(params,F,E,Const,ModelType, param):
     best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=1000)
     return best_P
 
-def BasicPlot(param,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,x1,x2,y1,y2):
+def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
 
-    c1  = param["fit"]["windows"]["window1"]["cut1"]
-    c2  = param["fit"]["windows"]["window1"]["cut2"]
+    x1  = param["display"][window]["x1"]
+    x2  = param["display"][window]["x2"]
+    y1  = param["display"][window]["y1"]
+    y2  = param["display"][window]["y2"]
+    
+    c1  = param["fit"]["windows"][window]["cut1"]
+    c2  = param["fit"]["windows"][window]["cut2"]
 
     if param["display"]["bin"] > 1:
         bin_size = param["display"]["bin"]
@@ -39,8 +44,10 @@ def BasicPlot(param,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,x1,x2,y1,y2):
         plt.step(Wb[:c1/bin_size],Fb[:c1/bin_size],color="red")
         plt.step(Wb[-c2/bin_size:],Fb[-c2/bin_size:],color="red")
     else:
-        line = param["lines"]["line"]["Nw1"]["Wavelength"]
-        plt.plot([line,line],[0.2e-14,0.3e-14],color='black')
+        line1 = param["lines"]["line"]["Nw1"]["Wavelength"]
+        line2 = param["lines"]["line"]["Nw2"]["Wavelength"]
+        plt.plot([line1,line1],[0.2e-14,0.3e-14],color='black')
+        plt.plot([line2,line2],[0.2e-14,0.3e-14],color='black')
         plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
         plt.step(W,F)
         plt.step(W[:c1],F[:c1],color="red")
@@ -58,11 +65,13 @@ def PrintParams(P):
     print "\nISM:"
     print "-"*50
     print "\t     b\t\t=\t",P[0],"km/s"
+    print "-"*50,"\n"
 
     print "\nCS:"
     print "-"*50
     print "\tlog(N/1cm^2)\t=\t",P[1]
     print "\t     b\t\t=\t",P[2],"km/s"
+    print "-"*50,"\n"
 
     print "\nExocomet:"
     print "-"*50
@@ -97,7 +106,7 @@ def main():
     
     # Define the data directory
     dat_directory   = param["directories"]["workdir"]
-
+    
     # Select the model type
     ModelType       = 1#param["fit"]["ModelType"]
     
@@ -109,7 +118,7 @@ def main():
 
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
-        ConstA              = [W,F,E,l]
+        ConstA              = [W1,F1,E1,l1]
     
     if Nwindows == 2:
         W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
@@ -151,11 +160,13 @@ def main():
     P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
     print "Best fit paramters:"
     PrintParams(P)
-
-    f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2   = m.LyModel(P,Const,ModelType,param)
-
-    #BasicPlot(param, W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1,param["display"]["window1"]["x1"],param["display"]["window1"]["x2"],param["display"]["window1"]["y1"],param["display"]["window1"]["y2"])
-    BasicPlot(param, W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2,param["display"]["window2"]["x1"],param["display"]["window2"]["x2"],param["display"]["window2"]["y1"],param["display"]["window2"]["y2"])
+    
+    if Nwindows == 1:
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1 = m.LyModel(Par,Const,ModelType,param)
+        BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1)    
+    if Nwindows == 2:
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2 = m.LyModel(Par,Const,ModelType,param)
+        BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2)
 
 
 if __name__ == '__main__':

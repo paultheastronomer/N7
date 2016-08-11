@@ -53,41 +53,70 @@ class Model:
         return kernel
 
 
-    def Continuum(self, param, l, W, F, E):  
+    def Continuum(self, param, window, l, W, F, E):  
         
-        c1  = param["fit"]["windows"]["window1"]["cut1"]
-        c2  = param["fit"]["windows"]["window1"]["cut2"]
+        c1  = param["fit"]["windows"][window]["cut1"]
+        c2  = param["fit"]["windows"][window]["cut2"]
         
         W = np.concatenate((W[:c1],W[-c2:]))
         F = np.concatenate((F[:c1],F[-c2:]))
         E = np.concatenate((E[:c1],E[-c2:]))
         
-        weights     = 1./E#**2 # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2). https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
-        z           = np.polyfit(W, F, param["fit"]["windows"]["window1"]["order"], rcond=None, full=False)#, w=weights)
+        weights     = 1./E
+        # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2).
+        # https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+        z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False)#, w=weights)
         pn          = np.poly1d(z)
         f           = pn(l)
         return f        
 
-    def absorption(self, l,v_bp,nh,vturb,T,param):
+    def absorption(self, l,v_bp,nh,vturb,T,param,Nwindows):
         
-        # [Hydrogen, Deuterium]   
-        w       = [param["lines"]["line"]["N1"]["Wavelength"],
-                  param["lines"]["line"]["N2"]["Wavelength"],
-                  param["lines"]["line"]["N3"]["Wavelength"]]
+        if Nwindows == 1:
+            # [Hydrogen, Deuterium]   
+            w       = [param["lines"]["line"]["N1"]["Wavelength"],
+                      param["lines"]["line"]["N2"]["Wavelength"],
+                      param["lines"]["line"]["N3"]["Wavelength"]]
+            
+            mass    = [param["lines"]["line"]["N1"]["Mass"],
+                      param["lines"]["line"]["N2"]["Mass"],
+                      param["lines"]["line"]["N3"]["Mass"]]
+            
+            fosc    = [param["lines"]["line"]["N1"]["Strength"],
+                      param["lines"]["line"]["N2"]["Strength"],
+                      param["lines"]["line"]["N3"]["Strength"]]
+            
+            delta   = np.array([param["lines"]["line"]["N1"]["Gamma"],
+                      param["lines"]["line"]["N2"]["Gamma"],
+                      param["lines"]["line"]["N3"]["Gamma"]]) /(4.*np.pi)
+            N_col   = np.array([1.,1.,1.])*10**nh
         
-        mass    = [param["lines"]["line"]["N1"]["Mass"],
-                  param["lines"]["line"]["N2"]["Mass"],
-                  param["lines"]["line"]["N3"]["Mass"]]
-        
-        fosc    = [param["lines"]["line"]["N1"]["Strength"],
-                  param["lines"]["line"]["N2"]["Strength"],
-                  param["lines"]["line"]["N3"]["Strength"]]
-        
-        delta   = np.array([param["lines"]["line"]["N1"]["Gamma"],
-                  param["lines"]["line"]["N2"]["Gamma"],
-                  param["lines"]["line"]["N3"]["Gamma"]]) /(4.*np.pi)
-        
-        N_col   = np.array([1.,1.,1.])*10**nh
+        if Nwindows == 2:
+            # [Hydrogen, Deuterium]   
+            w       = [param["lines"]["line"]["N1"]["Wavelength"],
+                      param["lines"]["line"]["N2"]["Wavelength"],
+                      param["lines"]["line"]["N3"]["Wavelength"],
+                      param["lines"]["line"]["Nw1"]["Wavelength"],
+                      param["lines"]["line"]["Nw2"]["Wavelength"]]
+            
+            mass    = [param["lines"]["line"]["N1"]["Mass"],
+                      param["lines"]["line"]["N2"]["Mass"],
+                      param["lines"]["line"]["N3"]["Mass"],
+                      param["lines"]["line"]["Nw1"]["Mass"],
+                      param["lines"]["line"]["Nw2"]["Mass"]]
+            
+            fosc    = [param["lines"]["line"]["N1"]["Strength"],
+                      param["lines"]["line"]["N2"]["Strength"],
+                      param["lines"]["line"]["N3"]["Strength"],
+                      param["lines"]["line"]["Nw1"]["Strength"],
+                      param["lines"]["line"]["Nw2"]["Strength"]]
+            
+            delta   = np.array([param["lines"]["line"]["N1"]["Gamma"],
+                      param["lines"]["line"]["N2"]["Gamma"],
+                      param["lines"]["line"]["N3"]["Gamma"],
+                      param["lines"]["line"]["Nw1"]["Gamma"],
+                      param["lines"]["line"]["Nw2"]["Gamma"]]) /(4.*np.pi)                
+            N_col   = np.array([1.,1.,1.,1.,1.])*10**nh
         
         c       = 2.99793e14
         k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
@@ -126,12 +155,12 @@ class Model:
         kernel1      =   self.K(W1, l1, sigma_kernel)
 
         # Calculates the ISM absorption
-        abs_ism1     =   self.absorption(l1,v_ism,nh_ism,b_ism,T_ism,param)
-        abs_bp1      =   self.absorption(l1,v_bp,nh_bp,b_bp,T_bp,param)
-        abs_X1       =   self.absorption(l1,v_X,nh_X,b_X,T_X,param)
+        abs_ism1     =   self.absorption(l1,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
+        abs_bp1      =   self.absorption(l1,v_bp,nh_bp,b_bp,T_bp,param,Nwindows)
+        abs_X1       =   self.absorption(l1,v_X,nh_X,b_X,T_X,param,Nwindows)
         
         # Continuum line
-        f1           =   self.Continuum(param, l1, W1, F1, E1)
+        f1           =   self.Continuum(param, param["display"]["window1"]["name"], l1, W1, F1, E1)
         
         # Stellar spectral profile, as seen from Earth
         # after absorption by the ISM and BP CS disk.
@@ -158,12 +187,12 @@ class Model:
             kernel2      =   self.K(W2, l2, sigma_kernel)
 
             # Calculates the ISM absorption
-            abs_ism2     =   self.absorption(l2,v_ism,nh_ism,b_ism,T_ism,param)
-            abs_bp2      =   self.absorption(l2,v_bp,nh_bp,b_bp,T_bp,param)
-            abs_X2       =   self.absorption(l2,v_X,nh_X,b_X,T_X,param)
+            abs_ism2     =   self.absorption(l2,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
+            abs_bp2      =   self.absorption(l2,v_bp,nh_bp,b_bp,T_bp,param,Nwindows)
+            abs_X2       =   self.absorption(l2,v_X,nh_X,b_X,T_X,param,Nwindows)
             
             # Continuum line
-            f2           =   self.Continuum(param, l2, W2, F2, E2)
+            f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
             
             # Stellar spectral profile, as seen from Earth
             # after absorption by the ISM and BP CS disk.
@@ -213,9 +242,9 @@ class Model:
             # Fixed parameters
             W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
             f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1 = self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1
+
         if Nwindows == 2:
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
             f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2 = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
-
-                    
-        return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2
