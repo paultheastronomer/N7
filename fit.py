@@ -30,7 +30,7 @@ def FindBestParams(params,F,E,Const,ModelType, param):
     best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=1000)
     return best_P
 
-def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
+def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved):
 
     x1  = param["display"][window]["x1"]
     x2  = param["display"][window]["x2"]
@@ -39,6 +39,8 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
     
     c1  = param["fit"]["windows"][window]["cut1"]
     c2  = param["fit"]["windows"][window]["cut2"]
+
+    fig = plt.figure(figsize=(12,6))
 
     if param["display"]["bin"] > 1:
         bin_size = param["display"]["bin"]
@@ -57,52 +59,47 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X):
         plt.step(W[:c1],F[:c1],color="red")
         plt.step(W[-c2:],F[-c2:],color="red")
     
-    plt.plot(W,f_fit,lw=3,color='#FF281C',label=r'Best fit')
+    plt.plot(l,unconvolved,color="cyan")
     plt.plot(l,f_abs_ism,color="green",lw=3)
     plt.plot(l,f_abs_bp,color="blue",lw=3)   
-    plt.plot(l,f_abs_X,color="purple",lw=3)  
+    plt.plot(l,f_abs_X,color="purple",lw=3)
+    plt.plot(W,f_fit,lw=3,color='#FF281C',label=r'Best fit')
     plt.xlim(x1,x2)
     plt.ylim(y1,y2)
     plt.show()
 
 def PrintParams(P, ConstB):
     print "\nISM:"
-    print "-"*50
-    print(Fore.GREEN)
+    print "-"*50,Fore.GREEN
     print "Free parameters:\n"
     print "\t     b\t\t=\t",P[0],"km/s"
     print(Fore.RED)
     print "\nConstant parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",ConstB[1],"km/s"
     print "\t    RV\t\t=\t",ConstB[2],"km/s"
-    print "\t     T\t\t=\t",ConstB[3],"K"
-    print(Style.RESET_ALL) 
+    print "\t     T\t\t=\t",ConstB[3],"K",Style.RESET_ALL
     print "-"*50,"\n"
 
     print "\nCS:"
-    print "-"*50
-    print(Fore.GREEN)
+    print "-"*50,Fore.GREEN
     print "Free parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",P[1]
     print "\t     b\t\t=\t",P[2],"km/s"
     print(Fore.RED)
     print "\nConstant parameters:\n"
     print "\t    RV\t\t=\t",ConstB[4],"km/s"
-    print "\t     T\t\t=\t",ConstB[5],"K"
-    print(Style.RESET_ALL)
+    print "\t     T\t\t=\t",ConstB[5],"K",Style.RESET_ALL
     print "-"*50,"\n"
 
     print "\nExocomet:"
-    print "-"*50
-    print(Fore.GREEN)
+    print "-"*50,Fore.GREEN
     print "Free parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",P[3],"km/s"
     print "\t    RV\t\t=\t",P[4],"km/s"
     print "\t     b\t\t=\t",P[5],"km/s"
     print(Fore.RED)
     print "\nConstant parameters:\n"
-    print "\t     T\t\t=\t",ConstB[6],"K"
-    print(Style.RESET_ALL)
+    print "\t     T\t\t=\t",ConstB[6],"K",Style.RESET_ALL
     print "-"*50,"\n\n\n"
 
 def Window(param,W,F,E,WindowName):
@@ -119,10 +116,11 @@ def Window(param,W,F,E,WindowName):
     E    = E[s_i[0]:s_i[-1]]
 
     # Create an array of RV measurements with a resolution of 1 km/s
-    v    = np.arange(-len(W)-250,len(W)+250,1) # RV values
+    v    = np.arange(-len(W)-500,len(W)+500,0.1) # RV values
 
     # Calculate the corresponding wavelengths
     l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
+
     return W, F, E, v, l
 
 def main():
@@ -183,17 +181,17 @@ def main():
     print "\nStarting paramters:"
    
     PrintParams(Par, ConstB)
-    #P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
-    #print "Best fit paramters:"
-    #PrintParams(P, ConstB)
+    P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
+    print "Best fit paramters:"
+    PrintParams(P, ConstB)
     
     if Nwindows == 1:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1 = m.LyModel(Par,Const,ModelType,param)
-        BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1)    
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(P,Const,ModelType,param)
+        BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
     if Nwindows == 2:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2 = m.LyModel(P,Const,ModelType,param)
-        BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1) 
-        BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
+        BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
+        BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
 
 
 if __name__ == '__main__':

@@ -39,15 +39,15 @@ class Model:
         Dispersion of the theoretical wavelength range
         np.roll is equivalent to the IDL shift function
         '''
-        dispersion          = 9.97e-3   # Ang /pix
+        # dl is the step size of the wavelength (l) in units of Angstrom
+        # on which "kernel" is to be calculated.
         dl                  = np.mean((l-np.roll(l,1))[1:])
-        # dl is the step size of the wavelength on which "kernel" is to be calculated.
-        dwave               = np.median((W-np.roll(W,1))[1:])
-        fwhm_cos_G130M_Ang  = sigma_kernel * dispersion # FWHM in Ang.
-        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl
-        sigma_kernel_dl     = fwhm_cos_G130M_dl / (2.*np.sqrt(2.*np.log(2.)))
-        kernel              = np.arange(-len(W)/2.,len(W)/2.,1)
-        kernel              = np.exp(-kernel**2/2./((sigma_kernel*dwave/dl)**2))
+        dwave               = np.median((W-np.roll(W,1))[1:])   # Dispersion [Ang /pix]
+        fwhm_cos_G130M_Ang  = sigma_kernel * dwave              # FWHM in Ang. 0.0648 Ang eq. to 6.5 pix.
+        fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl           # FWHM in Pix?
+        c                   = fwhm_cos_G130M_dl/(2*np.sqrt(2*np.log(2.)))
+        kernel              = np.arange(-len(W)/2.,len(W)/2.,1) # W choosen but another value would also work like 500.
+        kernel              = np.exp(-kernel**2/(2*c**2))
         kernel              = kernel/np.sum(kernel)     
         
         return kernel
@@ -124,7 +124,7 @@ class Model:
         k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
         u       = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
 
-        abs_ism = np.ones(len(l))
+        absorption = np.ones(len(l))
 
         for i in range(len(w)):
             b_wid   = np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
@@ -139,11 +139,11 @@ class Model:
             # To avoid underflow which occurs when you have exp(small negative number)
             for j in range(len(hav)):
                 if hav[j] < 20.:      
-                    abs_ism[j]  =   abs_ism[j]*np.exp(-hav[j])       
+                    absorption[j]  =   absorption[j]*np.exp(-hav[j])       
                 else:
-                    abs_ism[j]  =   0.
+                    absorption[j]  =   0.
                     
-        return abs_ism
+        return absorption
 
     def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
         
@@ -182,6 +182,8 @@ class Model:
 
         # Interpolation on COS wavelengths, relative to the star
         f_abs_int1   =   np.interp(W1,l1,f_abs_con1)
+
+        unconvolved1             =  f1*abs_ism1*abs_bp1*abs_X1
                 
 
         if Nwindows == 2:
@@ -214,40 +216,32 @@ class Model:
 
             # Interpolation on COS wavelengths, relative to the star
             f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
+
+            unconvolved2             =  f2*abs_ism2*abs_bp2*abs_X2
         
         if Nwindows == 1:
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
         
         if Nwindows == 2:
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
 
 
-    def LyModel(self, params, Const, ModelType, param):
+    def Model(self, params, Const, ModelType, param):
         
-        '''
-        ModelType refers to the kind of model you are interested in.
-  
-        ModelType = 1
-        ========================================================================
-        No extra components but the H absorption is not fixed to the beta pic
-        reference frame, but is free to vary.
-        ========================================================================                 
-        '''
         sigma_kernel    = param["instrument"]["sigma_kernel"]
 
         # Free parameters
         b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
 
-        Nwindows    = param["fit"]["windows"]["number"]
+        Nwindows        = param["fit"]["windows"]["number"]
 
         if Nwindows == 1:
             # Fixed parameters
-            W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
-            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1 = self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1
-
+            W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X  = Const
+            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
         if Nwindows == 2:
             # Fixed parameters
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
-            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2 = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2
+            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2  = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
+            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2

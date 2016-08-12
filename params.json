@@ -1,6 +1,7 @@
 {
 "directories" : { 
-    "workdir": "/home/paw/science/betapic/data/HST/dat/"
+    "workdir": "/home/paw/science/betapic/data/HST/dat/",
+    "exoatmdir": "/nethome/pwilson/betapic/data/HST/dat/"
     }, 
 
 "files" : { 
@@ -14,9 +15,9 @@
 "display" : {
     "window1"        : {
         "name"      : "window1",
-        "x1"        : 1198.64,
-        "x2"        : 1201.48,
-        "y1"        : -0.1e-15,
+        "x1"        : 1199.4,
+        "x2"        : 1199.96,
+        "y1"        : -1.0e-15,
         "y2"        : 1.51e-14
         },
     "window2"        : {

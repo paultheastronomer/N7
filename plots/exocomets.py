@@ -34,15 +34,20 @@ def main():
     
     # Load all combined data (except 2014 data)
     Wc, Fc, Ec  = np.genfromtxt(dat_directory+'N_AG_not_subtracted_2016_08_08.txt',unpack=True)
+    #print Wc
+    #Wc  = Wc[12200:14000]
+    #Fc  = Fc[12200:14000]
+    #Ec  = Ec[12200:14000]
+    
+    #Fx, Fy  = np.genfromtxt('/home/paw/science/betapic/data/stellar/t08000g45p00k2.flx',unpack=True,skip_header=3)
+    #Wx  = np.genfromtxt('/home/paw/science/betapic/data/stellar/UVBLUE_wavelengths.dat',unpack=True)
+    Wx, Fx      = np.genfromtxt('/home/paw/science/betapic/data/stellar/N_RotB132L09.dat',unpack=True)
     
     # Load stellar model convolved with beta Pic broadening and shifted by +20.5 km/s (RV of Beta Pic).
-    Ws, Fs      = np.genfromtxt('/home/paw/science/betapic/data/stellar/BP_Phoenix_4.5_Conv.dat',unpack=True)
+    #Ws130, Fs130      = np.genfromtxt('/home/paw/science/betapic/data/stellar/BP_Phoenix_g4.5_v20.5_vsin130.dat',unpack=True)
+    #Ws80, Fs80      = np.genfromtxt('/home/paw/science/betapic/data/stellar/BP_Phoenix_g4.5_v20.5_vsin80_shift0.045.dat',unpack=True)
     
-    # Calculate the factor between the stellar model with data
-    factor = np.median(Fc[7720:7850]/Fs[7720:7850])
-    
-    # Normalise the stellar model
-    Fs = Fs*factor
+
     
     # Find the normalisation number used to show the divided spectra next to measured data.
     norm = np.median(Fc[7720:7850])
@@ -58,15 +63,31 @@ def main():
     plt.rcParams['text.usetex'] = True
     plt.rcParams['text.latex.unicode'] = True
     
-    bin_pnts    = 3
+    #plt.step(Wx,Fx*1e-17,lw=2., color="red")
+
     
-    f2          = np.interp(Wc, Ws, Fs)
+    #bin_pnts    = 3
     
-    DIV         = norm*(Fc/f2)
+    fS         = np.interp(Wc, Wx, Fx)
+    #factor80    = np.median(Fc[7720:7850])/np.median(f80[7720:7850])
+    norm      = np.median(Fc[7720:7850])
+    DIV       = Fc/fS
+    norm      = np.median(Fc[7720:7850])/np.median(DIV)
+    DIV       = DIV*norm
+    #DIV130      = norm*(Fc/f130)
     
+    # Calculate the factor between the stellar model with data
+    #factor80 = np.median(Fc[7720:7850]/Fs80[7720:7850])
+    #factor130 = np.median(Fc[7720:7850]/Fs130[7720:7850])
+    
+    # Normalise the stellar model
+    #Fs80    = Fs80*factor130
+    #Fs130   = Fs130*factor130
+    
+        
     # Binning the combined data
-    Wcb, Fcb, Ecb   = Bin_data(Wc,Fc,Ec,bin_pnts)
-    Wcb, DIVb, Ecb   = Bin_data(Wc,DIV,Ec,bin_pnts)
+    #Wcb, Fcb, Ecb           = Bin_data(Wc,Fc,Ec,bin_pnts)
+    #Wcb, DIV80b, Ecb    = Bin_data(Wc,DIV80,Ec,bin_pnts)
     
     # Uncomment text below to see each epoch of data.
     '''
@@ -78,20 +99,27 @@ def main():
     plt.step(w3b, f3b, color="#00B233", label=r'Method 1')
     '''
     
-    #plt.step(Ws,Fs,lw=2., color="green")
-    plt.step(Wcb,Fcb,lw=2., color="black")
-    
+    plt.step(Wc,DIV,lw=2., color="red")
+    #plt.plot(Wc,f80,lw=2., color="red")
+    plt.step(Wc,Fc,lw=2., color="black")
 
     
-    plt.step(Wcb,DIVb,lw=2., color="red")
+    #plt.step(Ws80,Fs80,lw=2., color="orange")
+    #plt.step(Ws130,Fs130,lw=2., color="red")
+    #plt.step(Wcb,Fcb,lw=2., color="black")
     
-    np.savetxt(dat_directory+"N_DIV.dat",np.column_stack((Wc, DIV, Ec)))
+    
+
+    #plt.step(Wcb,DIV80b,lw=2., color="orange")
+    #plt.step(Wcb,DIV130b,lw=2., color="red")
+    
+    np.savetxt(dat_directory+"N_DIVB132L09.dat",np.column_stack((Wc, DIV, Ec)))
     
     #'''
     #plt.step(Wc[7720:7850],Fc[7720:7850],lw=2., color="blue")
     
     plt.xlim(1198.3,1202.3)
-    plt.ylim(-1.0e-16,2.6e-14)
+    plt.ylim(-1.0e-16,1.6e-14)
     plt.show()  
     
 if __name__ == '__main__':

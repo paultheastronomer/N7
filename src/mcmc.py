@@ -35,7 +35,7 @@ class MCMC:
 
       return param_ans,param_u,param_l
 
-    def McMC(self, x, X, F, ModelType, P, Const, S, C):
+    def McMC(self, x, X, F, ModelType, param, P, Const, S, C):
       '''
       x => x-axis values (In this case wavelength)
       X => Data (y,yerr,model)
@@ -46,14 +46,14 @@ class MCMC:
       '''
       L         = s.Merit(X)
       moves     = 0
-      chain     = np.zeros(shape=(C,len(P)))
-      L_chain   = np.zeros(shape=(C,1))
+      chain     = np.zeros(shape=(int(C),len(P)))
+      L_chain   = np.zeros(shape=(int(C),1))
       for i in range(int(C)):
         if i%100 == 0.:
           print (i/C)*100.," % done"
         jump        = np.random.normal(0.,1.,len(S)) * S
         P           = P + jump
-        new_fit     = m.Model(P, Const, ModelType)[0]
+        new_fit     = m.Model(P, Const, ModelType, param)[0]
         X           = X[0],X[1],new_fit
         L_new       = s.Merit(X)
         L_chain[i]  = L_new
