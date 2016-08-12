@@ -91,30 +91,28 @@ def main():
                 param["fit"]["exocomet"]["log(H)"],
                 param["fit"]["exocomet"]["RV"],
                 param["fit"]["exocomet"]["b"]]
-    
-    
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.25,0.3,0.2,0.1,1.0,0.2])
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e3)
+    step = np.array([0.25,0.2,0.2,0.1,1.0,0.2])
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
     
-    outfile = 'chains/chain_O_'+sys.argv[1]
-    np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
-    
+    outfile = 'chains/chain_A_'+sys.argv[1]
+    np.savez(outfile, b_ISM = chain[:,0], nh_CS = chain[:,1], b_CS = chain[:,2], nh_X = chain[:,3], RV_X = chain[:,4], b_X = chain[:,5])
+
     Pout = chain[moves,:]
     P_plot1 = [0,1]
     P_plot2 = [2,3]
     P_plot3 = [4,5]
-    #P_plot4 = [6,6]
+
     PU1 = mc.Median_and_Uncertainties(P_plot1,step,chain)
     PU2 = mc.Median_and_Uncertainties(P_plot2,step,chain)
     PU3 = mc.Median_and_Uncertainties(P_plot3,step,chain)
     
     print "b_ISM\t\t=\t"      ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
-    print "log(N(H))_CS\t=\t"   ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
+    print "log(N(H))_CS\t=\t" ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
     print "b_CS\t\t=\t"       ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
-    print "log(N(H))_X\t=\t"    ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
+    print "log(N(H))_X\t=\t"  ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
     print "RV_X\t\t=\t"       ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
     print "b_X\t\t=\t"        ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
 

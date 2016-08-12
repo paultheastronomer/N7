@@ -1,6 +1,6 @@
 #
 #   Sky v0.1 Alpha
-#   Please the required parameters in params.json.
+#   Please change the required parameters in params.json.
 #
 
 import numpy as np
@@ -192,7 +192,6 @@ def main():
         f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
         BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
-
 
 if __name__ == '__main__':
     main()

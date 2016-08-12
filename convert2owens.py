@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 def Initialise():
-    with open('../params.json') as param_file:    
+    with open('params.json') as param_file:    
 		param = json.load(param_file)
     return param
 
@@ -13,10 +13,10 @@ def main():
     # Define the data directory
     dat_directory   = param["directories"]["workdir"]
 
-    W, F, E         = np.genfromtxt(dat_directory+"N_DIV80B.dat"
+    W, F, E         = np.genfromtxt(dat_directory+"N_DIVB132L09.dat"
                       ,unpack=True,skip_header=500,skip_footer= 500)
 
-    f = open(dat_directory+'N_80B_OW.dat', 'w+')
+    f = open(dat_directory+'B132L09_OW.dat', 'w+')
     for i in range(len(W)):
         if not np.isnan(F[i]) and F[i] > 0:
             print >> f, " ","{: 1.10e}".format(W[i])," "+"{: 1.10e}".format(F[i])," "+"{: 1.10e}".format(E[i])
