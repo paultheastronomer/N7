@@ -65,9 +65,11 @@ class Model:
         weights     = 1./E
         # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2).
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+        
         z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False, w=weights)
         pn          = np.poly1d(z)
         f           = pn(l)
+        
         return f        
 
     def absorption(self, l,v_bp,nh,vturb,T,param,Nwindows):
@@ -146,7 +148,7 @@ class Model:
         return absorption
 
     def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
-        
+
         if Nwindows == 1:
             W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X = Const
         if Nwindows == 2:
@@ -178,7 +180,7 @@ class Model:
         f_abs_bp1    =   np.convolve(f1*abs_bp1, kernel1, mode='same')
 
         # Absorption by exocomets  
-        f_abs_X1    =    np.convolve(f1*abs_X1, kernel1, mode='same')
+        f_abs_X1     =    np.convolve(f1*abs_X1, kernel1, mode='same')
 
         # Interpolation on COS wavelengths, relative to the star
         f_abs_int1   =   np.interp(W1,l1,f_abs_con1)
@@ -212,12 +214,12 @@ class Model:
             f_abs_bp2    =   np.convolve(f2*abs_bp2, kernel2, mode='same')
 
             # Absorption by exocomets  
-            f_abs_X2    =    np.convolve(f2*abs_X2, kernel2, mode='same')
+            f_abs_X2     =    np.convolve(f2*abs_X2, kernel2, mode='same')
 
             # Interpolation on COS wavelengths, relative to the star
             f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
 
-            unconvolved2             =  f2*abs_ism2*abs_bp2*abs_X2
+            unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
         
         if Nwindows == 1:
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1

@@ -27,7 +27,7 @@ def Initialise():
     return param
 
 def FindBestParams(params,F,E,Const,ModelType, param):
-    best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=10)
+    best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=10000)
     return best_P
 
 def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved):
