@@ -40,32 +40,57 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
     c1  = param["fit"]["windows"][window]["cut1"]
     c2  = param["fit"]["windows"][window]["cut2"]
 
-    fig = plt.figure(figsize=(12,6))
+    fig = plt.figure(figsize=(8,5))
+
+    fontlabel_size  = 18
+    tick_size       = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': 15, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    plt.rcParams.update(params)
+    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['text.latex.unicode'] = True 
+
+    plt.plot(l,unconvolved,color="cyan")
+    plt.plot(l,f_abs_ism,color="#0386FF",lw=2)
+    plt.plot(l,f_abs_bp,color="#00B233",lw=2)   
+    plt.plot(l,f_abs_X,color="#FF9303",lw=2)
+    plt.plot(W,f_fit,lw=2,color='#FF281C',label=r'Best fit')
 
     if param["display"]["bin"] > 1:
         bin_size = param["display"]["bin"]
         Wb, Fb, Eb  = c.BinData(W,F,E,bin_size)
         plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
-        plt.step(Wb,Fb)
-        plt.step(Wb[:c1/bin_size],Fb[:c1/bin_size],color="red")
-        plt.step(Wb[-c2/bin_size:],Fb[-c2/bin_size:],color="red")
+        plt.step(Wb,Fb,color="#333333")
+        plt.step(Wb[:c1/bin_size],Fb[:c1/bin_size],color="black",lw=2)
+        plt.step(Wb[-c2/bin_size:],Fb[-c2/bin_size:],color="black",lw=2)
     else:
         line1 = param["lines"]["line"]["Nw1"]["Wavelength"]
         line2 = param["lines"]["line"]["Nw2"]["Wavelength"]
         plt.plot([line1,line1],[0.2e-14,0.3e-14],color='black')
         plt.plot([line2,line2],[0.2e-14,0.3e-14],color='black')
         plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
-        plt.step(W,F)
-        plt.step(W[:c1],F[:c1],color="red")
-        plt.step(W[-c2:],F[-c2:],color="red")
+        plt.step(W,F,color="#333333")
+        plt.step(W[:c1],F[:c1],color="black",lw=2)
+        plt.step(W[-c2:],F[-c2:],color="black",lw=2)
     
-    plt.plot(l,unconvolved,color="cyan")
-    plt.plot(l,f_abs_ism,color="green",lw=3)
-    plt.plot(l,f_abs_bp,color="blue",lw=3)   
-    plt.plot(l,f_abs_X,color="purple",lw=3)
-    plt.plot(W,f_fit,lw=3,color='#FF281C',label=r'Best fit')
+
     plt.xlim(x1,x2)
     plt.ylim(y1,y2)
+    if window == 'window1':
+    	x = [1199,1200,1201]
+    	labels = ['1199','1200','1201']
+    	plt.xticks(x, labels)
+    if window == 'window2':
+    	x = [1160,1161]
+    	labels = ['1160','1161']
+    	plt.xticks(x, labels)
+    
+    plt.xlabel(r'Wavelength (\AA)')
+    plt.ylabel(r'Flux (erg/s/cm$^2$/\AA)')
+
+    plt.minorticks_on()
+    fig.tight_layout()
+    fig.savefig("plots/"+window+".pdf")
     plt.show()
 
 def PrintParams(P, ConstB):
@@ -181,17 +206,25 @@ def main():
     print "\nStarting paramters:"
    
     PrintParams(Par, ConstB)
-    P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
-    print "Best fit paramters:"
-    PrintParams(P, ConstB)
-    
+    #P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
+    #print "Best fit paramters:"
+    #PrintParams(P, ConstB)
+
+	#print "DOF:\t\t",len(RV)-len(Par)
+	#print "Chi2 reduced:\t",s.chi2(X)/(len(F)-len(Par)),"\n"
+
     if Nwindows == 1:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(P,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(Par,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
     if Nwindows == 2:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(Par,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
         BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
+
+    X = [F1, E1, f_fit1]
+    print "Chi2:\t\t",s.chi2(X)
+    print "DOF:\t\t",len(W1)-len(Par)
+    print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
 
 if __name__ == '__main__':
     main()

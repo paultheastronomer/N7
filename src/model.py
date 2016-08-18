@@ -171,7 +171,8 @@ class Model:
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
         
-        f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1*abs_X1, kernel1, mode='same')
+        #f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1*abs_X1, kernel1, mode='same')
+        f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1, kernel1, mode='same')
 
         # Absorption by ISM
         f_abs_ism1   =   np.convolve(f1*abs_ism1, kernel1, mode='same')        
