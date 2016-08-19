@@ -67,7 +67,6 @@ def main():
     ConstB   =  [param["BetaPictoris"]["RV"],
                 
                 # Fixed ISM parameters
-                param["fit"]["ISM"]["log(H)"],
                 param["fit"]["ISM"]["RV"],
                 param["fit"]["ISM"]["T"],
                 
@@ -82,7 +81,7 @@ def main():
     
                 # Free ISM parameters
     Par     =   [param["fit"]["ISM"]["b"],
-                
+                param["fit"]["ISM"]["log(H)"],                
                 # Free CS parameters
                 param["fit"]["disk"]["log(H)"],
                 param["fit"]["disk"]["b"],
@@ -94,11 +93,8 @@ def main():
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.0,0.1,0.0,0.1,1.0,0.0])
+    step = np.array([0.0,0.1,0.1,0.0,0.1,1.0,0.0])
     chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,2e2)
-    
-    #outfile = 'chains/chain_O_'+sys.argv[1]
-    #np.savez(outfile, nh_bp = chain[:,0], max_f = chain[:,1], uf = chain[:,2], av = chain[:,3], v_H = chain[:,4], nh_ISM = chain[:,5])
     
     Pout = chain[moves,:]
     P_plot1 = [0,1]
