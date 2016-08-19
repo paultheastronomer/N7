@@ -178,7 +178,6 @@ def main():
     ConstB   =  [param["BetaPictoris"]["RV"],
                 
                 # Fixed ISM parameters
-                param["fit"]["ISM"]["log(H)"],
                 param["fit"]["ISM"]["RV"],
                 param["fit"]["ISM"]["T"],
                 
@@ -193,7 +192,7 @@ def main():
     
                 # Free ISM parameters
     Par     =   [param["fit"]["ISM"]["b"],
-                
+                param["fit"]["ISM"]["log(H)"],                
                 # Free CS parameters
                 param["fit"]["disk"]["log(H)"],
                 param["fit"]["disk"]["b"],
@@ -205,7 +204,7 @@ def main():
     
     print "\nStarting paramters:"
    
-    PrintParams(Par, ConstB)
+    #PrintParams(Par, ConstB)
     #P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
     #print "Best fit paramters:"
     #PrintParams(P, ConstB)
