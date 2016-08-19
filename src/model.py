@@ -150,11 +150,11 @@ class Model:
     def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
 
         if Nwindows == 1:
-            W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X = Const
+            W1,F1,E1,l1,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
         if Nwindows == 2:
-            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X = Const
+            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
 
-        b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+        b_ism, nh_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
 
         kernel1      =   self.K(W1, l1, sigma_kernel)
 
@@ -171,8 +171,7 @@ class Model:
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
         
-        #f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1*abs_X1, kernel1, mode='same')
-        f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1, kernel1, mode='same')
+        f_abs_con1   =   np.convolve(f1*abs_ism1*abs_bp1*abs_X1, kernel1, mode='same')
 
         # Absorption by ISM
         f_abs_ism1   =   np.convolve(f1*abs_ism1, kernel1, mode='same')        
@@ -234,17 +233,17 @@ class Model:
         sigma_kernel    = param["instrument"]["sigma_kernel"]
 
         # Free parameters
-        b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+        b_ism, nh_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
 
         Nwindows        = param["fit"]["windows"]["number"]
 
         if Nwindows == 1:
             # Fixed parameters
-            W1,F1,E1,l1,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X  = Const
+            W1,F1,E1,l1,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X  = Const
             f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
         if Nwindows == 2:
             # Fixed parameters
-            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,nh_ism,v_ism,T_ism,v_bp,T_bp,T_X   = Const
+            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X   = Const
             f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2  = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
