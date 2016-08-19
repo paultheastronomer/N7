@@ -53,12 +53,19 @@ class MCMC:
           print (i/C)*100.," % done"
         jump        = np.random.normal(0.,1.,len(S)) * S
         P           = P + jump
+
+        # Constraining log(N)_ISM to be no larger than 14.1
+        # based on upper limit constraint explained in Wilson et al (2016) (Nitrogen paper).
+
+        while P[1] > 14.1:
+          P[1]        = P[1] - jump[1]
+
         new_fit     = m.Model(P, Const, ModelType, param)[0]
         X           = X[0],X[1],new_fit
         L_new       = s.Merit(X)
         L_chain[i]  = L_new
         ratio       = L_new/L
-
+        #print "ok"
         if (np.random.random() > ratio):
           P     = P - jump
           moved = 0
