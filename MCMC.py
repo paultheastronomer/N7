@@ -93,8 +93,8 @@ def main():
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.0,0.1,0.1,0.0,0.1,1.0,0.0])
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,2e2)
+    step = np.array([0.0,0.08,0.07,0.0,0.07,1.0,0.0])
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,4e2)
     
     Pout = chain[moves,:]
     P_plot1 = [0,1]
