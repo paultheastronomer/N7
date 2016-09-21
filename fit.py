@@ -76,6 +76,7 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
 
     plt.xlim(x1,x2)
     plt.ylim(y1,y2)
+    '''
     if window == 'window1':
     	x = [1199,1200,1201]
     	labels = ['1199','1200','1201']
@@ -84,7 +85,7 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
     	x = [1160,1161]
     	labels = ['1160','1161']
     	plt.xticks(x, labels)
-    
+    '''
     plt.xlabel(r'Wavelength (\AA)')
     plt.ylabel(r'Flux (erg/s/cm$^2$/\AA)')
 
@@ -135,7 +136,7 @@ def Window(param,W,F,E,WindowName):
     E    = E[s_i[0]:s_i[-1]]
 
     # Create an array of RV measurements with a resolution of 1 km/s
-    v    = np.arange(-len(W)-500,len(W)+500,0.1) # RV values
+    v    = np.arange(-len(W)-100,len(W)+100,1) # RV values
 
     # Calculate the corresponding wavelengths
     l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
@@ -152,7 +153,7 @@ def main():
     # Select the model type
     ModelType       = 1#param["fit"]["ModelType"]
     
-    Nwindows   = param["fit"]["windows"]["number"]
+    Nwindows        = param["fit"]["windows"]["number"]
 
     # Load the data file
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
@@ -197,21 +198,22 @@ def main():
                 param["fit"]["exocomet"]["RV"],
                 param["fit"]["exocomet"]["b"]]
  
+    '''
     PrintParams(Par, ConstB)
     P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
     print "Best fit paramters:"
     PrintParams(P, ConstB)
-
+    '''
     #X = [F1, E1, f_fit1]
     #print "DOF:\t\t",len(RV)-len(Par)
     #print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
 
   
     if Nwindows == 1:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(P,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(Par,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
     if Nwindows == 2:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(Par,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
         BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
 

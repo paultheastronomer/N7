@@ -29,7 +29,7 @@ def Window(param,W,F,E,WindowName):
     E    = E[s_i[0]:s_i[-1]]
 
     # Create an array of RV measurements with a resolution of 1 km/s
-    v    = np.arange(-len(W)-500,len(W)+500,0.1) # RV values
+    v    = np.arange(-len(W)-100,len(W)+100,1) # RV values
 
     # Calculate the corresponding wavelengths
     l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
@@ -47,7 +47,7 @@ def main():
     # Select the model type
     ModelType       = 1#param["fit"]["ModelType"]
     
-    Nwindows   = param["fit"]["windows"]["number"]
+    Nwindows        = param["fit"]["windows"]["number"]
 
     # Load the data file
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
@@ -80,8 +80,8 @@ def main():
     Const   =   np.concatenate((ConstA,ConstB))
     
                 # Free ISM parameters
-    Par     =   [param["fit"]["ISM"]["b"],
-                param["fit"]["ISM"]["log(H)"],                
+    Par     =   [param["fit"]["ISM"]["log(H)"],
+                param["fit"]["ISM"]["b"],                
                 # Free CS parameters
                 param["fit"]["disk"]["log(H)"],
                 param["fit"]["disk"]["b"],
@@ -93,11 +93,11 @@ def main():
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.0,0.08,0.07,0.0,0.07,1.0,0.0])
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
+    step = np.array([0.15,0.0,0.15,0.0,0.15,1.0,0.0])
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,2e2)
     
-    outfile = 'chains/chain_L_'+sys.argv[1]
-    np.savez(outfile, b_ISM = chain[:,0], nh_ISM = chain[:,1], nh_CS = chain[:,2], b_CS = chain[:,3], nh_X = chain[:,4], RV_X = chain[:,5], b_X = chain[:,6])
+    outfile = 'chains/chain_Q_'+sys.argv[1]
+    np.savez(outfile, nh_ISM = chain[:,0], b_ISM = chain[:,1], nh_CS = chain[:,2], b_CS = chain[:,3], nh_X = chain[:,4], RV_X = chain[:,5], b_X = chain[:,6])
 
     Pout = chain[moves,:]
     P_plot1 = [0,1]
@@ -108,13 +108,12 @@ def main():
     PU2 = mc.Median_and_Uncertainties(P_plot2,step,chain)
     PU3 = mc.Median_and_Uncertainties(P_plot3,step,chain)
     
-    print "b_ISM\t\t=\t"      ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
-    print "log(N(H))_CS\t=\t" ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
+    print "log(N(H))_CS\t=\t" ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
+    print "b_ISM\t\t=\t"      ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
     print "b_CS\t\t=\t"       ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
     print "log(N(H))_X\t=\t"  ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
     print "RV_X\t\t=\t"       ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
     print "b_X\t\t=\t"        ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
-
 
 if __name__ == '__main__':
     main()

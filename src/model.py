@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import wofz
-import sys
+import sys, time
+import pandas as pd
 
 class Model:
     '''
@@ -26,6 +27,8 @@ class Model:
 
         See the notes for `voigt` for more details.
         '''
+        '''
+        This code has been removed for speed purposes
         try:
              from scipy.special import wofz
         except ImportError:
@@ -34,6 +37,8 @@ class Model:
              print(s)
         else:
              return wofz(u + 1j * a).real
+        '''
+        return wofz(u + 1j * a).real
 
     def LSF(self,lsf_cen, W):
         ''' Tabulated Theoretical Line Spread Functions at Lifetime position 3
@@ -44,17 +49,16 @@ class Model:
         
         # Find the LSF closest to lsf_cen in Angstrom. See params.json.
         closest_LSF = min(X, key=lambda x:abs(x-lsf_cen))
-        
-        # Find the index of this LSF
-        index_LSF   = list(X).index(closest_LSF)
-        
-        # Load the LSF
-        Y =  np.genfromtxt('data/fuv_G130M_1291_lsf.dat', unpack=True).T[index_LSF]
 
-        # Interpolate the LSF model across a wider RV range
-        kernel          = np.arange(-len(W)/2.,len(W)/2.,1)
-        LSF_kernel      = np.interp(kernel,X,Y)
-        LSF_kernel      = LSF_kernel/LSF_kernel.sum()
+        df      = pd.read_csv('data/fuv_G130M_1291_lsf.dat', delim_whitespace=True)
+        Y       = df[0:][str(int(closest_LSF))]
+
+        pix     = np.arange(-(len(Y))/2,len(Y)/2)+1
+
+        kern    = np.arange(-len(W),len(W),1)
+
+        LSF_kernel      = np.interp(kern,pix,Y)
+        LSF_kernel      = LSF_kernel/np.sum(LSF_kernel)
 
         return LSF_kernel
 
@@ -72,20 +76,19 @@ class Model:
         fwhm_cos_G130M_Ang  = sigma_kernel * dwave              # FWHM in Ang. 0.0648 Ang eq. to 6.5 pix.
         fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl           # FWHM in Pix?
         c                   = fwhm_cos_G130M_dl/(2*np.sqrt(2*np.log(2.)))
-        kernel              = np.arange(-len(W)/2.,len(W)/2.,1) # W choosen but another value would also work like 500.
-        kernel              = np.exp(-kernel**2/(2*c**2))
+        kern                = np.arange(-len(W),len(W),1)   # Same as l in fit.py
+        kernel              = np.exp(-kern**2/(2*c**2))
         kernel              = kernel/np.sum(kernel)     
-        
         return kernel
 
     def VoigtModel(self,params,Const):
         ''' Basic Voigt model to fit given data '''
-        max_f, av, a, b    = params
-        S,BetaPicRV,RV,kernel    = Const
+        max_f, av, a, b         = params
+        S,BetaPicRV,RV,kernel   = Const
 
-        f       =   max_f*self.voigt_wofz(av,RV)
+        f       = max_f*self.voigt_wofz(av,RV)
         f       = f + (a*RV + b)
-        f_star  =   np.convolve(f,kernel,mode='same')
+        f_star  = np.convolve(f,kernel,mode='same')
         
         return f_star
 
@@ -133,7 +136,6 @@ class Model:
         # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2).
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
         weights     = 1./E
-
         
         z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False, w=weights)
         pn          = np.poly1d(z)
@@ -191,11 +193,10 @@ class Model:
             
             N_col   = np.array([1.,1.,1.,1.,1.])*10**nh
         
-        c       = 2.99793e14        # Speed of light
-        k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
-        u       = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
-
-        absorption = np.ones(len(l))
+        c           = 2.99793e14        # Speed of light
+        k           = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
+        u           = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
+        absorption  = np.ones(len(l))
 
         for i in range(len(w)):
             b_wid   = np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
@@ -208,16 +209,16 @@ class Model:
             hav     = tv*self.voigt_wofz(a,v)
             
             # To avoid underflow which occurs when you have exp(small negative number)
+
             for j in range(len(hav)):
                 if hav[j] < 20.:      
                     absorption[j]  =   absorption[j]*np.exp(-hav[j])       
                 else:
-                    absorption[j]  =   0.
-                    
+                    absorption[j]  =   0.      
         return absorption
 
     def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
-
+        
         if Nwindows == 1:
             W1,F1,E1,l1,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
         if Nwindows == 2:
@@ -227,14 +228,15 @@ class Model:
 
         if param["fit"]["lsf"] == 'tabulated':
             kernel1      =   self.LSF(param["lines"]["line"]["N1"]["Wavelength"], W1)
-        
         else:
             kernel1      =   self.K(W1, l1, sigma_kernel)
 
+        
         # Calculates the ISM absorption
         abs_ism1     =   self.absorption(l1,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
         abs_bp1      =   self.absorption(l1,v_bp,nh_bp,b_bp,T_bp,param,Nwindows)
         abs_X1       =   self.absorption(l1,v_X,nh_X,b_X,T_X,param,Nwindows)
+        
         
         # Continuum line
         f1           =   self.Continuum(param, param["display"]["window1"]["name"], l1, W1, F1, E1)
@@ -271,6 +273,7 @@ class Model:
             kernel2      =   self.K(W2, l2, sigma_kernel)
 
             # Calculates the ISM absorption
+            
             abs_ism2     =   self.absorption(l2,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
             abs_bp2      =   self.absorption(l2,v_bp,nh_bp,b_bp,T_bp,param,Nwindows)
             abs_X2       =   self.absorption(l2,v_X,nh_X,b_X,T_X,param,Nwindows)
@@ -298,7 +301,7 @@ class Model:
             f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
 
             unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
-        
+            
         if Nwindows == 1:
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
         
@@ -311,7 +314,6 @@ class Model:
 
         # Free parameters
         nh_ism, b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
-
 
         Nwindows        = param["fit"]["windows"]["number"]
 
