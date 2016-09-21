@@ -35,17 +35,17 @@ class Model:
         else:
              return wofz(u + 1j * a).real
 
-    def LSF(self, W, l, sigma_kernel):
+    def LSF(self,lsf_cen, W):
         ''' Tabulated Theoretical Line Spread Functions at Lifetime position 3
         Taken from http://www.stsci.edu/hst/cos/performance/spectral_resolution/
         '''
         # Load the wavelengths which have computed LSF values
         X =  np.genfromtxt('data/fuv_G130M_1291_lsf.dat', unpack=True).T[0]
         
-        # Find the LSF closest to 1200 Angstrom
-        closest_LSF = min(X, key=lambda x:abs(x-1200.))
+        # Find the LSF closest to lsf_cen in Angstrom. See params.json.
+        closest_LSF = min(X, key=lambda x:abs(x-lsf_cen))
         
-        # Find the infex of this LSF
+        # Find the index of this LSF
         index_LSF   = list(X).index(closest_LSF)
         
         # Load the LSF
@@ -223,10 +223,13 @@ class Model:
         if Nwindows == 2:
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
 
-        b_ism, nh_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+        nh_ism, b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
 
-        #kernel1      =   self.LSF(W1, l1, sigma_kernel)
-        kernel1      =   self.K(W1, l1, sigma_kernel)
+        if param["fit"]["lsf"] == 'tabulated':
+            kernel1      =   self.LSF(param["lines"]["line"]["N1"]["Wavelength"], W1)
+        
+        else:
+            kernel1      =   self.K(W1, l1, sigma_kernel)
 
         # Calculates the ISM absorption
         abs_ism1     =   self.absorption(l1,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
@@ -259,6 +262,11 @@ class Model:
                 
 
         if Nwindows == 2:
+
+            if param["fit"]["lsf"] == 'tabulated':
+                kernel2      =   self.LSF(param["lines"]["line"]["Nw1"]["Wavelength"], W2)
+            else:
+                kernel2      =   self.K(W2, l2, sigma_kernel)
 
             kernel2      =   self.K(W2, l2, sigma_kernel)
 
@@ -302,7 +310,8 @@ class Model:
         sigma_kernel    = param["instrument"]["sigma_kernel"]
 
         # Free parameters
-        b_ism, nh_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+        nh_ism, b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
+
 
         Nwindows        = param["fit"]["windows"]["number"]
 
