@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.special import wofz
+import sys
 
 class Model:
     '''
@@ -7,6 +8,7 @@ class Model:
     '''
         
     def voigt_wofz(self, a, u):
+
         ''' Compute the Voigt function using Scipy's wofz().
 
         # Code from https://github.com/nhmc/Barak/blob/\
@@ -33,10 +35,34 @@ class Model:
         else:
              return wofz(u + 1j * a).real
 
+    def LSF(self, W, l, sigma_kernel):
+        ''' Tabulated Theoretical Line Spread Functions at Lifetime position 3
+        Taken from http://www.stsci.edu/hst/cos/performance/spectral_resolution/
+        '''
+        # Load the wavelengths which have computed LSF values
+        X =  np.genfromtxt('data/fuv_G130M_1291_lsf.dat', unpack=True).T[0]
+        
+        # Find the LSF closest to 1200 Angstrom
+        closest_LSF = min(X, key=lambda x:abs(x-1200.))
+        
+        # Find the infex of this LSF
+        index_LSF   = list(X).index(closest_LSF)
+        
+        # Load the LSF
+        Y =  np.genfromtxt('data/fuv_G130M_1291_lsf.dat', unpack=True).T[index_LSF]
+
+        # Interpolate the LSF model across a wider RV range
+        kernel          = np.arange(-len(W)/2.,len(W)/2.,1)
+        LSF_kernel      = np.interp(kernel,X,Y)
+        LSF_kernel      = LSF_kernel/LSF_kernel.sum()
+
+        return LSF_kernel
 
     def K(self, W, l, sigma_kernel):
         ''' LSF
-        Dispersion of the theoretical wavelength range
+        Dispersion of the theoretical wavelength range.
+        This LSF is based on a Gaussian with a FWHM given in the instrument parameter
+        'sigma_kernel' found in params.json
         np.roll is equivalent to the IDL shift function
         '''
         # dl is the step size of the wavelength (l) in units of Angstrom
@@ -52,19 +78,62 @@ class Model:
         
         return kernel
 
+    def VoigtModel(self,params,Const):
+        ''' Basic Voigt model to fit given data '''
+        max_f, av, a, b    = params
+        S,BetaPicRV,RV,kernel    = Const
+
+        f       =   max_f*self.voigt_wofz(av,RV)
+        f       = f + (a*RV + b)
+        f_star  =   np.convolve(f,kernel,mode='same')
+        
+        return f_star
+
+    def GaussianModel(self,params,Const):
+        ''' Basic Gaussian model to fit given data '''
+        A, sigma,  a, b     = params
+        S,BetaPicRV,RV,kernel,mu        = Const
+
+        u = RV + mu
+
+        G = A*np.exp(-(u)**2/(2.*sigma**2))
+        G = G + (a*u + b)
+
+        f_star  =   np.convolve(G,kernel,mode='same')
+        
+        return f_star
+
+    def GaussianModelDouble(self,params,Const):
+        ''' Basic double Gaussian model to fit given data '''
+        A, sigma1, sigma2, a, b = params
+        S,BetaPicRV,RV,kernel,mu        = Const
+
+        u = RV + mu
+
+        G1 = np.exp(-(u)**2/(2.*sigma1**2))
+        G2 = np.exp(-(u)**2/(2.*sigma2**2))
+
+        Gtot = A*(G1+G2)+(a*u + b)
+
+        f_star  =   np.convolve(Gtot,kernel,mode='same')
+
+        return f_star
 
     def Continuum(self, param, window, l, W, F, E):  
-        
+        ''' Function used to model the continuum using only data outside
+        of the lines being modeled. '''
+
         c1  = param["fit"]["windows"][window]["cut1"]
         c2  = param["fit"]["windows"][window]["cut2"]
         
         W = np.concatenate((W[:c1],W[-c2:]))
         F = np.concatenate((F[:c1],F[-c2:]))
         E = np.concatenate((E[:c1],E[-c2:]))
-        
-        weights     = 1./E
+ 
         # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2).
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
+        weights     = 1./E
+
         
         z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False, w=weights)
         pn          = np.poly1d(z)
@@ -122,7 +191,7 @@ class Model:
             
             N_col   = np.array([1.,1.,1.,1.,1.])*10**nh
         
-        c       = 2.99793e14
+        c       = 2.99793e14        # Speed of light
         k       = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
         u       = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
 
@@ -156,6 +225,7 @@ class Model:
 
         b_ism, nh_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
 
+        #kernel1      =   self.LSF(W1, l1, sigma_kernel)
         kernel1      =   self.K(W1, l1, sigma_kernel)
 
         # Calculates the ISM absorption
@@ -180,7 +250,7 @@ class Model:
         f_abs_bp1    =   np.convolve(f1*abs_bp1, kernel1, mode='same')
 
         # Absorption by exocomets  
-        f_abs_X1     =    np.convolve(f1*abs_X1, kernel1, mode='same')
+        f_abs_X1     =   np.convolve(f1*abs_X1, kernel1, mode='same')
 
         # Interpolation on COS wavelengths, relative to the star
         f_abs_int1   =   np.interp(W1,l1,f_abs_con1)
@@ -226,7 +296,6 @@ class Model:
         
         if Nwindows == 2:
             return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
-
 
     def Model(self, params, Const, ModelType, param):
         
