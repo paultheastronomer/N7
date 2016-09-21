@@ -94,37 +94,31 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
     plt.show()
 
 def PrintParams(P, ConstB):
-    print "\nISM:"
+    print "\n",Fore.GREEN,"Free parameters",Style.RESET_ALL
+    print Fore.RED,"Constant paramters",Style.RESET_ALL,"\n"
+    
+    print "ISM parameters:"
     print "-"*50,Fore.GREEN
-    print "Free parameters:\n"
-    print "\t     b\t\t=\t",P[0],"km/s"
-    print(Fore.RED)
-    print "\nConstant parameters:\n"
-    print "\tlog(N/1cm^2)\t=\t",ConstB[1],"km/s"
-    print "\t    RV\t\t=\t",ConstB[2],"km/s"
-    print "\t     T\t\t=\t",ConstB[3],"K",Style.RESET_ALL
-    print "-"*50,"\n"
-
+    print "\tlog(N/1cm^2)\t=\t",P[0],"km/s"
+    print "\t     b\t\t=\t",    P[1],Fore.RED
+    print "\t     RV\t\t=\t",   ConstB[1],"km/s"
+    print "\t     T\t\t=\t",    ConstB[2],"K",Style.RESET_ALL
+    print "-"*50
+    
     print "\nCS:"
     print "-"*50,Fore.GREEN
-    print "Free parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",P[1]
-    print "\t     b\t\t=\t",P[2],"km/s"
-    print(Fore.RED)
-    print "\nConstant parameters:\n"
-    print "\t    RV\t\t=\t",ConstB[4],"km/s"
-    print "\t     T\t\t=\t",ConstB[5],"K",Style.RESET_ALL
+    print "\t     b\t\t=\t",    P[2],"km/s",Fore.RED
+    print "\t    RV\t\t=\t",    ConstB[3],"km/s"
+    print "\t     T\t\t=\t",    ConstB[4],"K",Style.RESET_ALL
     print "-"*50,"\n"
 
     print "\nExocomet:"
     print "-"*50,Fore.GREEN
-    print "Free parameters:\n"
     print "\tlog(N/1cm^2)\t=\t",P[3],"km/s"
-    print "\t    RV\t\t=\t",P[4],"km/s"
-    print "\t     b\t\t=\t",P[5],"km/s"
-    print(Fore.RED)
-    print "\nConstant parameters:\n"
-    print "\t     T\t\t=\t",ConstB[6],"K",Style.RESET_ALL
+    print "\t    RV\t\t=\t",    P[4],"km/s"
+    print "\t     b\t\t=\t",    P[5],"km/s",Fore.RED
+    print "\t     T\t\t=\t",    ConstB[5],"K",Style.RESET_ALL
     print "-"*50,"\n\n\n"
 
 def Window(param,W,F,E,WindowName):
@@ -162,7 +156,7 @@ def main():
 
     # Load the data file
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
-                      ,unpack=True) 
+                      ,unpack=True)
 
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
@@ -191,8 +185,9 @@ def main():
     Const   =   np.concatenate((ConstA,ConstB))
     
                 # Free ISM parameters
-    Par     =   [param["fit"]["ISM"]["b"],
-                param["fit"]["ISM"]["log(H)"],                
+    Par     =   [param["fit"]["ISM"]["log(H)"],
+                param["fit"]["ISM"]["b"],                
+                
                 # Free CS parameters
                 param["fit"]["disk"]["log(H)"],
                 param["fit"]["disk"]["b"],
@@ -201,29 +196,25 @@ def main():
                 param["fit"]["exocomet"]["log(H)"],
                 param["fit"]["exocomet"]["RV"],
                 param["fit"]["exocomet"]["b"]]
-    
-    print "\nStarting paramters:"
-   
-    #PrintParams(Par, ConstB)
-    #P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
-    #print "Best fit paramters:"
-    #PrintParams(P, ConstB)
+ 
+    PrintParams(Par, ConstB)
+    P =  FindBestParams(Par, F1, E1, Const, ModelType, param)
+    print "Best fit paramters:"
+    PrintParams(P, ConstB)
 
-	#print "DOF:\t\t",len(RV)-len(Par)
-	#print "Chi2 reduced:\t",s.chi2(X)/(len(F)-len(Par)),"\n"
+    #X = [F1, E1, f_fit1]
+    #print "DOF:\t\t",len(RV)-len(Par)
+    #print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
 
+  
     if Nwindows == 1:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(Par,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(P,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
     if Nwindows == 2:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(Par,Const,ModelType,param)
+        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
         BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
 
-    X = [F1, E1, f_fit1]
-    print "Chi2:\t\t",s.chi2(X)
-    print "DOF:\t\t",len(W1)-len(Par)
-    print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
 
 if __name__ == '__main__':
     main()
