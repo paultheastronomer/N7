@@ -128,10 +128,25 @@ class Model:
 
         c1  = param["fit"]["windows"][window]["cut1"]
         c2  = param["fit"]["windows"][window]["cut2"]
+        c3  = param["fit"]["windows"][window]["cut3"]
+        c4  = param["fit"]["windows"][window]["cut4"]
+
+        closest_W1  = min(W, key=lambda x:abs(x-c1))
+        i1          = list(W).index(closest_W1)
+
+        closest_W2  = min(W, key=lambda x:abs(x-c2))
+        i2          = list(W).index(closest_W2)
+
+        closest_W3  = min(W, key=lambda x:abs(x-c3))
+        i3          = list(W).index(closest_W3)
+
+        closest_W4  = min(W, key=lambda x:abs(x-c4))
+        i4          = list(W).index(closest_W4)
+
         
-        W = np.concatenate((W[:c1],W[-c2:]))
-        F = np.concatenate((F[:c1],F[-c2:]))
-        E = np.concatenate((E[:c1],E[-c2:]))
+        W = np.concatenate((W[:i1],W[i2:i3],W[i4:]))
+        F = np.concatenate((F[:i1],F[i2:i3],F[i4:]))
+        E = np.concatenate((E[:i1],E[i2:i3],E[i4:]))
  
         # Weights to apply to the y-coordinates of the sample points. For gaussian uncertainties, use 1/sigma (not 1/sigma**2).
         # https://docs.scipy.org/doc/numpy/reference/generated/numpy.polyfit.html
