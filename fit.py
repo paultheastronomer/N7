@@ -39,6 +39,20 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
     
     c1  = param["fit"]["windows"][window]["cut1"]
     c2  = param["fit"]["windows"][window]["cut2"]
+    c3  = param["fit"]["windows"][window]["cut3"]
+    c4  = param["fit"]["windows"][window]["cut4"]
+
+    closest_W1  = min(W, key=lambda x:abs(x-c1))
+    i1          = list(W).index(closest_W1)
+
+    closest_W2  = min(W, key=lambda x:abs(x-c2))
+    i2          = list(W).index(closest_W2)
+
+    closest_W3  = min(W, key=lambda x:abs(x-c3))
+    i3          = list(W).index(closest_W3)
+
+    closest_W4  = min(W, key=lambda x:abs(x-c4))
+    i4          = list(W).index(closest_W4)
 
     fig = plt.figure(figsize=(8,5))
 
@@ -56,13 +70,18 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
     plt.plot(l,f_abs_X,color="#FF9303",lw=2)
     plt.plot(W,f_fit,lw=2,color='#FF281C',label=r'Best fit')
 
+    #plt.step(W,F-f_fit,lw=2,color='#FF281C',label=r'Best fit')
+    #plt.show()
+    #sys.exit()
+
     if param["display"]["bin"] > 1:
         bin_size = param["display"]["bin"]
         Wb, Fb, Eb  = c.BinData(W,F,E,bin_size)
         plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
         plt.step(Wb,Fb,color="#333333")
-        plt.step(Wb[:c1/bin_size],Fb[:c1/bin_size],color="black",lw=2)
-        plt.step(Wb[-c2/bin_size:],Fb[-c2/bin_size:],color="black",lw=2)
+        plt.step(Wb[:i1/bin_size],Fb[:i1/bin_size],color="black",lw=2)
+        plt.step(Wb[i2/bin_size:i3/bin_size],Fb[i2/bin_size:i3/bin_size],color="black",lw=2)
+        plt.step(Wb[i4/bin_size:],Fb[i4/bin_size:],color="black",lw=2)
     else:
         line1 = param["lines"]["line"]["Nw1"]["Wavelength"]
         line2 = param["lines"]["line"]["Nw2"]["Wavelength"]
@@ -70,8 +89,9 @@ def BasicPlot(param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved)
         plt.plot([line2,line2],[0.2e-14,0.3e-14],color='black')
         plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
         plt.step(W,F,color="#333333")
-        plt.step(W[:c1],F[:c1],color="black",lw=2)
-        plt.step(W[-c2:],F[-c2:],color="black",lw=2)
+        plt.step(W[:i1],F[:i1],color="black",lw=2)
+        plt.step(W[i2:i3],F[i2:i3],color="black",lw=2)
+        plt.step(W[i4:],F[i4:],color="black",lw=2)
     
 
     plt.xlim(x1,x2)
@@ -204,9 +224,6 @@ def main():
     print "Best fit paramters:"
     PrintParams(P, ConstB)
     '''
-    #X = [F1, E1, f_fit1]
-    #print "DOF:\t\t",len(RV)-len(Par)
-    #print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
 
   
     if Nwindows == 1:
@@ -216,6 +233,10 @@ def main():
         f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(Par,Const,ModelType,param)
         BasicPlot(param, param["display"]["window1"]["name"], W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
         BasicPlot(param, param["display"]["window2"]["name"], W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
+
+    X = [F1, E1, f_fit1]
+    print "DOF:\t\t",len(W1)-len(Par)
+    print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
 
 
 if __name__ == '__main__':
