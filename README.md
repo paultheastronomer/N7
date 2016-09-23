@@ -5,7 +5,7 @@
 
 Sky is the Norwegian word for cloud.
 
-This code is currently being built and is not fit for use. The work using this code will be features in Wilson et al. (2017).
+This code is currently under development and is not fit for use. The work based on this code will be featured in Wilson et al. (2017).
 
 **fit.py** - Fits the nitrogen tripplet using voigt profiles and estimates column densities.
 
