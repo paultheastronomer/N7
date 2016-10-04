@@ -93,10 +93,10 @@ def main():
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.15,0.0,0.15,0.0,0.15,1.0,0.0])
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
+    step = np.array([0.1,0.0,0.1,0.0,0.06,1.0,0.0])
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e5)
     
-    outfile = 'chains/chain_Q_'+sys.argv[1]
+    outfile = 'chains/chain_R_'+sys.argv[1]
     np.savez(outfile, nh_ISM = chain[:,0], b_ISM = chain[:,1], nh_CS = chain[:,2], b_CS = chain[:,3], nh_X = chain[:,4], RV_X = chain[:,5], b_X = chain[:,6])
 
     Pout = chain[moves,:]
