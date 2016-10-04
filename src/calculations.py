@@ -1,4 +1,8 @@
 import numpy as np
+from scipy.optimize import leastsq
+
+from src.statistics import Stats
+s   = Stats()
 
 class Calc:
     '''
@@ -79,3 +83,56 @@ class Calc:
         else:
             AG      = np.concatenate((AG,zeros))[abs(units):]
         return AG
+
+    def PrintParams(self, P, ConstB):
+        print "\n",Fore.GREEN,"Free parameters",Style.RESET_ALL
+        print Fore.RED,"Constant paramters",Style.RESET_ALL,"\n"
+        
+        print "ISM parameters:"
+        print "-"*50,Fore.GREEN
+        print "\tlog(N/1cm^2)\t=\t",P[0],"km/s"
+        print "\t     b\t\t=\t",    P[1],Fore.RED
+        print "\t     RV\t\t=\t",   ConstB[1],"km/s"
+        print "\t     T\t\t=\t",    ConstB[2],"K",Style.RESET_ALL
+        print "-"*50
+        
+        print "\nCS:"
+        print "-"*50,Fore.GREEN
+        print "\tlog(N/1cm^2)\t=\t",P[1]
+        print "\t     b\t\t=\t",    P[2],"km/s",Fore.RED
+        print "\t    RV\t\t=\t",    ConstB[3],"km/s"
+        print "\t     T\t\t=\t",    ConstB[4],"K",Style.RESET_ALL
+        print "-"*50,"\n"
+
+        print "\nExocomet:"
+        print "-"*50,Fore.GREEN
+        print "\tlog(N/1cm^2)\t=\t",P[3],"km/s"
+        print "\t    RV\t\t=\t",    P[4],"km/s"
+        print "\t     b\t\t=\t",    P[5],"km/s",Fore.RED
+        print "\t     T\t\t=\t",    ConstB[5],"K",Style.RESET_ALL
+        print "-"*50,"\n\n\n"
+
+    def FindBestParams(self, params,F,E,Const,ModelType, param):
+        best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=10000)
+        return best_P
+
+    def Window(self, param,W,F,E,WindowName):
+        fit_start   = param["fit"]["windows"][WindowName]["start"]
+        fit_end     = param["fit"]["windows"][WindowName]["stop"]
+
+        s_i = []
+        for i in range(len(W)):
+            if fit_start <= W[i] <= fit_end:
+                s_i.append(i)
+        
+        W    = W[s_i[0]:s_i[-1]]
+        F    = F[s_i[0]:s_i[-1]]
+        E    = E[s_i[0]:s_i[-1]]
+
+        # Create an array of RV measurements with a resolution of 1 km/s
+        v    = np.arange(-len(W)-100,len(W)+100,1) # RV values
+
+        # Calculate the corresponding wavelengths
+        l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
+
+        return W, F, E, v, l
