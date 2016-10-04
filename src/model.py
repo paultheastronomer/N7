@@ -53,11 +53,15 @@ class Model:
         df      = pd.read_csv('data/fuv_G130M_1291_lsf.dat', delim_whitespace=True)
         Y       = df[0:][str(int(closest_LSF))]
 
-        pix     = np.arange(-(len(Y))/2,len(Y)/2)+1
+        pix     = np.arange(-(len(Y))/2,len(Y)/2)+0.5
 
         kern    = np.arange(-len(W),len(W),1)
 
-        LSF_kernel      = np.interp(kern,pix,Y)
+        dw_fit  = 0.0024913932510912673 # 1/10th of COS pixel size
+        dw_cos  = 0.0099655730043650692 # Size of COS pixel in
+
+        
+        LSF_kernel      = np.interp(kern*dw_fit,pix*dw_cos,Y)
         LSF_kernel      = LSF_kernel/np.sum(LSF_kernel)
 
         return LSF_kernel

@@ -129,8 +129,9 @@ class Calc:
         F    = F[s_i[0]:s_i[-1]]
         E    = E[s_i[0]:s_i[-1]]
 
-        # Create an array of RV measurements with a resolution of 1 km/s
-        v    = np.arange(-len(W)-100,len(W)+100,1) # RV values
+        # Create an array of RV measurements with a resolution of 0.2 km/s
+
+        v    = np.arange(-len(W)-100,len(W)+100,0.2) # RV values
 
         # Calculate the corresponding wavelengths
         l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
