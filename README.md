@@ -1,16 +1,13 @@
-# sky
+# N7
 
 [![GPL](https://img.shields.io/badge/license-GNU%20GPLv3-brightgreen.svg)](http://choosealicense.com/licenses/gpl-3.0/)
 
+N7 Alpha v0.1 is released!
 
-Sky is the Norwegian word for cloud.
-
-This code is currently under development and is not fit for use. The work based on this code will be featured in Wilson et al. (2017).
+N7 is a custom build code for modelling the NI lines found around 1160 and 1200 Angstrom in HST/COS data. The code is under active development and will be featured in upcoming work by Wilson et al. (2017).
 
 **fit.py** - Fits the nitrogen tripplet using voigt profiles and estimates column densities.
 
-**plots/exocomets.py** - Shows a simple plot of spectra centered around the region of the NI line.
+**MCMC_XA.py** - Code specifically designed to run 24 MCMC chains simultaneously on the exoatmos super computer.
 
-**convert2owens.py** - Converts a general text file into a **owens.f** friendly format.
-
-**RotBroad.py** - Applies rotational broadening to a given spectrum using the formulae given in Gray’s “The Observation and Analysis of Stellar Photospheres”. It allows for limb darkening parameterized by the linear limb-darkening law. The code has been adapted from [pyatronomy](http://pyastronomy.readthedocs.io/en/latest/pyaslDoc/aslDoc/rotBroad.html).
+**params.json** - Parameter file which contains all parameters used in the modelling of the NI lines.
