@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import leastsq
+import pyfits, os
 
 from src.statistics import Stats
 s   = Stats()
@@ -43,6 +44,61 @@ class Calc:
         RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
         return RV
 
+    def ExportShitedSpectra(self, w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,stop,rest_wavelength):
+       
+        # Creating empty arrays to be filled with
+        # shifted spectra
+        F = [[] for _ in range(NumFits-1)]    # -1 because we want to avoid the airglow observation
+        W = [[] for _ in range(NumFits-1)]
+        E = [[] for _ in range(NumFits-1)]    
+
+        W[0],F[0],E[0]  =   c.ShiftSpec(f0,f1,e1,w0,start,stop,rest_wavelength)
+        W[1],F[1],E[1]  =   c.ShiftSpec(f0,f2,e2,w0,start,stop,rest_wavelength)
+        W[2],F[2],E[2]  =   c.ShiftSpec(f0,f3,e3,w0,start,stop,rest_wavelength)
+        
+        #W[3],F[3],E[3] =   shift_spec(f0,f3,e3,w0,start,stop)
+
+        if NumFits > 4:
+            W[3],F[3],E[3]  =   c.ShiftSpec(f0,f4,e4,w0,start,stop,rest_wavelength)
+
+        F = np.array(F)
+        E = np.array(E)
+        
+        #F_ave_w =  np.average(F, axis=0,weights=1./E**2)
+        
+        F_ave_w, E_ave_w    = c.WeightedAvg(F, E)
+        
+
+        if NumFits > 4:
+            return W[0], F[0], E[0], F[1], E[1], F[2], E[2], F[3], E[3], AG, eAG, F_ave_w, E_ave_w
+        elif NumFits < 4:
+            return W[0], F[0], E[0], AG, eAG, F_ave_w, E_ave_w
+        else:
+            return W[0], F[0], E[0], F[1], E[1], F[2], E[2], AG, eAG, F_ave_w, E_ave_w
+
+    def ExtractData(self, fits_file, part,start,stop):
+        f           = pyfits.open(fits_file)
+        tbdata      = f[1].data
+        net         = tbdata['NET']
+        gcounts     = tbdata['GCOUNTS']
+        exptime     = np.array([tbdata['EXPTIME']])
+        wavelength  = tbdata['WAVELENGTH']
+        flux        = tbdata['FLUX'] 
+        a           = net*exptime.T
+        for i in range(len(a)):
+            a[i]        = [1e-15 if x==0 else x for x in a[i]]
+        err         = np.sqrt(gcounts+1)*(flux / (a))
+        if start == False:
+            if part == 'A':
+                return wavelength[0], flux[0], err[0]
+            else:
+                return wavelength[1], flux[1], err[1]   
+        else:
+            if part == 'A':
+                return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
+            else:
+                return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
+
     def FindCenter(self,w,l):
         for i in range(len(w)):
           if w[i] > l:
@@ -70,6 +126,30 @@ class Calc:
         print "Factor:",factor
         return factor, factor_err
 
+    def GetData(self, fits_location,part,start,stop):
+        dir_contents = os.listdir(fits_location)
+        fits = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('sum.fits')])
+        NumFits = len(fits)
+        # Extracting data from fits files
+        wavelength0, flux0, err0    = self.ExtractData(fits_location+fits[0],part,start,stop)
+        
+        if fits_location[-13:] == '2014/visit_1/':
+            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[1],part,start,stop)
+            return wavelength0, flux0 ,err0, wavelength_AG, flux_AG, err_AG, NumFits
+        
+        elif fits_location[-13:] == '2015/visit_1/':
+            wavelength1, flux1, err1        = self.ExtractData(fits_location+fits[1],part,start,stop)
+            wavelength2, flux2, err2        = self.ExtractData(fits_location+fits[2],part,start,stop)
+            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[3],part,start,stop)
+            return wavelength0, wavelength1, wavelength2, flux0, flux1, flux2, err0, err1, err2, wavelength_AG, flux_AG, err_AG, NumFits
+        
+        else:
+            wavelength1, flux1, err1    = self.ExtractData(fits_location+fits[1],part,start,stop)
+            wavelength2, flux2, err2    = self.ExtractData(fits_location+fits[2],part,start,stop)
+            wavelength3, flux3, err3    = self.ExtractData(fits_location+fits[3],part,start,stop)
+            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[4],part,start,stop)
+            return wavelength0, wavelength1, wavelength2, wavelength3, flux0, flux1, flux2, flux3, err0, err1, err2, err3, wavelength_AG, flux_AG, err_AG, NumFits
+
     def ReplaceWithMedian(self, X):
         X[np.isnan(X)] = 0
         m = np.median(X[X > 0])
@@ -83,6 +163,54 @@ class Calc:
         else:
             AG      = np.concatenate((AG,zeros))[abs(units):]
         return AG
+
+    def ShiftSpec(self, ref,spec,error,wave,start,stop,rest_wavelength):
+        # This routine correlates the spectrum: spec
+        # with the reference spectrum: ref
+        ref_c   = ref[start:stop]   # Reference spectrum
+        spec_c  = spec[start:stop]  # Spectrum to be shifted
+        error_c = error[start:stop] # Error on spec to be shifted
+        wave_c  = wave[start:stop]  # Wavelength of spec to be shifted
+        
+        ref_c       = ref_c - np.mean(ref_c)
+        spec_c      = spec_c - np.mean(spec_c)
+        error_c       = error_c - np.mean(error_c)
+
+        c           = np.correlate(spec_c,ref_c,mode='full')
+
+        x           = np.arange(c.size)
+        c_max       = np.argmax(c)      # Maximum correlation
+        
+        c_light = 299792458
+
+        print "=================================="
+        if ref_c.size-1 > c_max:        # If spectrum is redshifted
+          #ref_c.size-1 because python starts index at 0
+          shift = wave_c[ref_c.size-1]-wave_c[np.argmax(c)]
+          units = (ref_c.size-1)-np.argmax(c)
+          RV_shift = ((shift/rest_wavelength)*c_light)/1.e3
+          print "Pixel Shift:\t",units
+          print "Angstrom Shift:\t",shift
+          print "RV Shift:\t",RV_shift
+          zeros = np.zeros(units)
+          if units != 0:
+            spec    = np.concatenate((zeros, spec), axis=0)[:-units]
+            error   = np.concatenate((zeros, error), axis=0)[:-units]
+        else:                           # If spectrum is blueshifted
+          c = np.correlate(ref_c,spec_c,mode='full')
+          shift = wave_c[np.argmax(c)]-wave_c[ref_c.size-1]
+          units = abs(np.argmax(c)-(ref_c.size-1))
+          RV_shift = ((shift/rest_wavelength)*c_light)/1.e3
+          print "Pixel Shift:\t",-units
+          print "Angstrom Shift:\t",shift
+          print "RV Shift:\t",RV_shift
+          zeros     = np.zeros(units)
+          if units != 0:
+            spec    = np.concatenate((spec, zeros), axis=0)[units:]
+            error   = np.concatenate((error, zeros), axis=0)[units:]
+        print "=================================="
+
+        return wave,spec,error
 
     def PrintParams(self, P, ConstB):
         print "\n",Fore.GREEN,"Free parameters",Style.RESET_ALL
