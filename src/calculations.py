@@ -52,21 +52,21 @@ class Calc:
         W = [[] for _ in range(NumFits-1)]
         E = [[] for _ in range(NumFits-1)]    
 
-        W[0],F[0],E[0]  =   c.ShiftSpec(f0,f1,e1,w0,start,stop,rest_wavelength)
-        W[1],F[1],E[1]  =   c.ShiftSpec(f0,f2,e2,w0,start,stop,rest_wavelength)
-        W[2],F[2],E[2]  =   c.ShiftSpec(f0,f3,e3,w0,start,stop,rest_wavelength)
+        W[0],F[0],E[0]  =   self.ShiftSpec(f0,f1,e1,w0,start,stop,rest_wavelength)
+        W[1],F[1],E[1]  =   self.ShiftSpec(f0,f2,e2,w0,start,stop,rest_wavelength)
+        W[2],F[2],E[2]  =   self.ShiftSpec(f0,f3,e3,w0,start,stop,rest_wavelength)
         
         #W[3],F[3],E[3] =   shift_spec(f0,f3,e3,w0,start,stop)
 
         if NumFits > 4:
-            W[3],F[3],E[3]  =   c.ShiftSpec(f0,f4,e4,w0,start,stop,rest_wavelength)
+            W[3],F[3],E[3]  =   self.ShiftSpec(f0,f4,e4,w0,start,stop,rest_wavelength)
 
         F = np.array(F)
         E = np.array(E)
         
         #F_ave_w =  np.average(F, axis=0,weights=1./E**2)
         
-        F_ave_w, E_ave_w    = c.WeightedAvg(F, E)
+        F_ave_w, E_ave_w    = self.WeightedAvg(F, E)
         
 
         if NumFits > 4:
@@ -76,7 +76,7 @@ class Calc:
         else:
             return W[0], F[0], E[0], F[1], E[1], F[2], E[2], AG, eAG, F_ave_w, E_ave_w
 
-    def ExtractData(self, fits_file, part,start,stop):
+    def ExtractData(self, fits_file, part):
         f           = pyfits.open(fits_file)
         tbdata      = f[1].data
         net         = tbdata['NET']
@@ -88,16 +88,10 @@ class Calc:
         for i in range(len(a)):
             a[i]        = [1e-15 if x==0 else x for x in a[i]]
         err         = np.sqrt(gcounts+1)*(flux / (a))
-        if start == False:
-            if part == 'A':
-                return wavelength[0], flux[0], err[0]
-            else:
-                return wavelength[1], flux[1], err[1]   
+        if part == 'A':
+            return wavelength[0], flux[0], err[0]
         else:
-            if part == 'A':
-                return wavelength[0][start:-stop], flux[0][start:-stop], err[0][start:-stop]
-            else:
-                return wavelength[1][start:-stop], flux[1][start:-stop], err[1][start:-stop]
+            return wavelength[1], flux[1], err[1]   
 
     def FindCenter(self,w,l):
         for i in range(len(w)):
@@ -126,28 +120,35 @@ class Calc:
         print "Factor:",factor
         return factor, factor_err
 
-    def GetData(self, fits_location,part,start,stop):
-        dir_contents = os.listdir(fits_location)
-        fits = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('sum.fits')])
-        NumFits = len(fits)
-        # Extracting data from fits files
-        wavelength0, flux0, err0    = self.ExtractData(fits_location+fits[0],part,start,stop)
+    def GetData(self, fits_location,part):
+        dir_contents    = os.listdir(fits_location)
+        fits            = sorted([fn for fn in dir_contents if fn.startswith('l') and fn.endswith('sum.fits')])
+        NumFits         = len(fits)
+
+        # Extracting data from fits files.
+        #
         
         if fits_location[-13:] == '2014/visit_1/':
-            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[1],part,start,stop)
+            # The 2014 data had no shifts.
+            wavelength0, flux0, err0    = self.ExtractData(fits_location+fits[0],part)
+            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[1],part)
             return wavelength0, flux0 ,err0, wavelength_AG, flux_AG, err_AG, NumFits
         
         elif fits_location[-13:] == '2015/visit_1/':
-            wavelength1, flux1, err1        = self.ExtractData(fits_location+fits[1],part,start,stop)
-            wavelength2, flux2, err2        = self.ExtractData(fits_location+fits[2],part,start,stop)
-            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[3],part,start,stop)
+            # 2015 visit 1 data had a shift +0.8.
+            wavelength0, flux0, err0    = self.ExtractData(fits_location+fits[0],part)
+            wavelength1, flux1, err1        = self.ExtractData(fits_location+fits[1],part)
+            wavelength2, flux2, err2        = self.ExtractData(fits_location+fits[2],part)
+            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[3],part)
             return wavelength0, wavelength1, wavelength2, flux0, flux1, flux2, err0, err1, err2, wavelength_AG, flux_AG, err_AG, NumFits
         
         else:
-            wavelength1, flux1, err1    = self.ExtractData(fits_location+fits[1],part,start,stop)
-            wavelength2, flux2, err2    = self.ExtractData(fits_location+fits[2],part,start,stop)
-            wavelength3, flux3, err3    = self.ExtractData(fits_location+fits[3],part,start,stop)
-            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[4],part,start,stop)
+            # The 2015 v2 and 2016 data had multiple shifts.
+            wavelength0, flux0, err0    = self.ExtractData(fits_location+fits[0],part)
+            wavelength1, flux1, err1        = self.ExtractData(fits_location+fits[1],part)
+            wavelength2, flux2, err2        = self.ExtractData(fits_location+fits[2],part)
+            wavelength3, flux3, err3        = self.ExtractData(fits_location+fits[3],part)
+            wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[4],part)
             return wavelength0, wavelength1, wavelength2, wavelength3, flux0, flux1, flux2, flux3, err0, err1, err2, err3, wavelength_AG, flux_AG, err_AG, NumFits
 
     def ReplaceWithMedian(self, X):
