@@ -1,7 +1,11 @@
 {
 "directories" : { 
     "workdir": "/home/paw/science/betapic/data/HST/dat/",
-    "exoatmdir": "/nethome/pwilson/betapic/data/HST/dat/"
+    "exoatmdir": "/nethome/pwilson/betapic/data/HST/dat/",
+    "2014": "/home/paw/science/betapic/data/HST/2014/visit_1/",
+    "2015a": "/home/paw/science/betapic/data/HST/2015/visit_1/",
+    "2015b": "/home/paw/science/betapic/data/HST/2015/visit_2/",
+    "2016": "/home/paw/science/betapic/data/HST/2016/visit_3/"
     }, 
 
 "files" : { 
@@ -13,6 +17,12 @@
     },
 
 "display" : {
+    "overview"        : {
+        "Ax1"        : 1120,
+        "Ax2"        : 1280,
+        "Ay1"        : 0.0e-15,
+        "Ay2"        : 1.21e-14
+        },
     "window1"        : {
         "name"      : "window1",
         "x1"        : 1198.4,
@@ -66,7 +76,8 @@
     },
 
 "BetaPictoris" : { 
-    "RV": 20.5
+    "RV": 20.5,
+    "part": "B"
     },
 
 "fit" : {
@@ -105,7 +116,7 @@
         "b"	        : 3.00
     },
     "exocomet" : {    
-        "log(H)"    : 12.59,
+        "log(H)"    : 16.59,
         "RV"        : 36.3,
         "T"         : 10.0,
         "b"	        : 3.00
