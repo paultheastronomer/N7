@@ -1,6 +1,7 @@
 {
 "directories" : { 
     "workdir": "/home/paw/science/betapic/data/HST/dat/",
+    "stellardir": "/home/paw/science/betapic/data/stellar/",
     "exoatmdir": "/nethome/pwilson/betapic/data/HST/dat/",
     "2014": "/home/paw/science/betapic/data/HST/2014/visit_1/",
     "2015a": "/home/paw/science/betapic/data/HST/2015/visit_1/",
@@ -9,7 +10,9 @@
     }, 
 
 "files" : { 
-    "datafile": "B132L09W.dat"
+    "datafile": "B132L09W.dat",
+    "stellar_spectrum1": "t08000g45p00k2_80.txt",
+    "stellar_spectrum2": "t08000g45p00k2_130.txt"
     },
 
 "instrument" : { 

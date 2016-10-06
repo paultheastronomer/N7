@@ -9,9 +9,9 @@ class Plotting:
     A collection of plotting routines.
     '''
     def FigParams(self):
-        #fig = plt.figure(figsize=(8,5))
+        fig = plt.figure(figsize=(8,5))
         #fig = plt.figure(figsize=(10,14))
-        fig = plt.figure(figsize=(14,10))
+        #fig = plt.figure(figsize=(14,10))
 
         fontlabel_size  = 18
         tick_size       = 18
@@ -68,16 +68,25 @@ class Plotting:
         #plt.savefig('FEB_quiet_regions.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
-    def CombinedPlot(self, w, W, F_tot, F1, F2, F3, F4):
+    def CombinedPlot(self, param, window, w, W, F_tot, F_tot_err, F_tot_bin, FS1, FS1_bin, FS2, FS2_bin, F1, F2, F3, F4):
+        
         fig = self.FigParams()
+
+        x1  = param["display"][window]["x1"]
+        x2  = param["display"][window]["x2"]
+        y1  = param["display"][window]["y1"]
+        y2  = param["display"][window]["y2"]
+
         #plt.step(W,F1/F_tot,lw=1.2,color="#FF281C",label='2014')
         #plt.step(W,F2,lw=1.2,color="#FF9303",label='2015v1')
         #plt.step(W,F3,lw=1.2,color="#0386FF",label='2015v2')
         #plt.step(W,F4,lw=1.2,color="#00B233",label='2016v3')
-        plt.step(W,F_tot,lw=1.2,color="black",label='Total')
-        plt.xlim(1199,1201.67)
-        plt.ylim(0.,2.3e-14)
-        #plt.ylim(0.,2.3)
+        plt.step(w,FS1*9e-18,lw=1.2,color="blue",label='Total')
+        plt.step(w,FS2*9e-18,lw=1.2,color="red",label='Total')
+        plt.step(W-0.082,F_tot_bin,lw=1.2,color="black",label='Total')
+        #plt.xlim(x1,x2)
+        plt.ylim(y1,y2*15)
+        #plt.ylim(0.,2.e-15)
         plt.show()
 
     def BasicPlot(self,param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved):

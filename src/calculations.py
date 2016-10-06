@@ -18,6 +18,59 @@ class Calc:
         bin_e       = np.array([e1[digitized == i].mean() for i in range(0, len(bins))])
         return bins, bin_y, bin_e/np.sqrt(bin_pnts)
 
+    def Broaden(model, vsini, epsilon=0.5, linear=False, findcont=False):
+        """
+        Rotationally broaden the model spectrum to the given vsini
+        Parameters:
+        ===========
+        - model:       kglib.utils.DataStructures.xypoint instance
+                       The model to be broadened
+        - vsini:       float
+                       The velocity (times sin(i) ) of the star, in cm/s
+        - epsilon:     float from 0 to 1
+                       Linear limb darkening. I(u) = 1-epsilon + epsilon*u
+        - linear:      boolean
+                       Flag for if the x-spacing is already linear in log-spacing.
+                       If true, we don't need to linearize
+        - findcont:    boolean
+                       Flag to decide if the continuum needs to be found
+        Returns:
+        ========
+        Broadened model spectrum. Warning! The wavelength axis is changed from the original
+        if linear=False!
+        """
+        c = constants.c.cgs.value
+
+        if not linear:
+            x0 = model.x[0]
+            x1 = model.x[-1]
+            x = np.logspace(np.log10(x0), np.log10(x1), model.size())
+            model = FittingUtilities.RebinData(model, x)
+        else:
+            x = model.x
+        if findcont:
+            model.cont = FittingUtilities.Continuum(model.x, model.y, lowreject=1.5, highreject=10)
+
+        # Make the broadening kernel.
+        dx = np.log(x[1]/x[0])
+        lim = vsini/c
+        if lim < dx:
+            #vsini is too small. Don't broaden
+            logging.warn("vsini too small ({}). Not broadening!".format(vsini))
+            return model.copy()
+
+        d_logx = np.arange(0.0, lim, dx)
+        d_logx = np.r_[-d_logx[::-1][:-1], d_logx]
+        alpha = 1.0 - (d_logx/lim)**2
+        B = (1.0-epsilon)*np.sqrt(alpha) + epsilon*np.pi*alpha/4.0 #Broadening kernel
+        B /= B.sum()  #Normalize
+
+        # Do the convolution
+        broadened = model.copy()
+        broadened.y = fftconvolve(model.y, B, mode='same')
+
+        return broadened 
+
     def WeightedAvg(self,Flux, Err):
         """
         Return the weighted average and Error bars.
