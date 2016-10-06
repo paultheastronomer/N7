@@ -20,12 +20,17 @@ def main():
 
 
     dat_directory   = param["directories"]["workdir"]
+    stellar_dir     = param["directories"]["stellardir"]
     part            = param["BetaPictoris"]["RV"]   # A = red, B = blue
     bin_size        = param["display"]["bin"]
     x_lim1          = param["display"]["overview"]["Ax1"]
     x_lim2          = param["display"]["overview"]["Ax2"]   
     Line            = param["lines"]["line"]["N1"]["Wavelength"]
     RV_BP           = param["BetaPictoris"]["RV"]
+
+    
+    #c.BroadenSpec(1180, 1210, 1, 80)
+    #sys.exit()
 
     # Load data visit 1 2014
     fits_location   = param["directories"]["2014"]
@@ -76,17 +81,17 @@ def main():
         s1 = 6100
         s2  = 11400  
     else:
-        #s1 = 10000
-        #s2  = 13473
+        s1 = 10000
+        s2  = 13473
         #s1 = 12550  # Region around a SII line
         #s2 = 12750
-        s1 = 7200  # Region around a SII line
-        s2 = 7400
+        #s1 = 7200  # Region just left of the NI line
+        #s2 = 7400
 
 
 
     # Creates a figure showing the quiet regions of the spectra.
-    p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
+    #p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
     #sys.exit()
     # --------------------------------------------------------------------------
     # The heart of the code. This is where the the quiet region of the spectra
@@ -246,9 +251,19 @@ def main():
     W_bin, F3_bin, E3_bin       =   c.BinData(w0_0,F3,E3,bin_size)
     W_bin, F4_bin, E4_bin       =   c.BinData(w0_0,F4,E4,bin_size)
 
-    p.CombinedPlot(w0_0, W_bin, F_tot_bin, F1_bin, F2_bin, F3_bin, F4_bin)
+    #np.savetxt(dat_directory+"/shifted_spectra/"+"NI_2016_10_05.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
+    
+    W80, F80                      = np.genfromtxt(stellar_dir+param["files"]["stellar_spectrum1"],unpack=True)
+    W130, F130                      = np.genfromtxt(stellar_dir+param["files"]["stellar_spectrum2"],unpack=True)
+
+    F80i                         = np.interp(w0_0,W80,F80)
+    F130i                         = np.interp(w0_0,W130,F130)
+
+    W_dummy, F80i_bin, E_dummy    = c.BinData(w0_0, F80i, F_tot_err,bin_size)
+    W_dummy, F130i_bin, E_dummy    = c.BinData(w0_0, F130i, F_tot_err,bin_size)
 
 
+    p.CombinedPlot(param, param["display"]["window1"]["name"], w0_0, W_bin, F_tot, F_tot_err, F_tot_bin, F80i, F80i_bin, F130i, F130i_bin, F1_bin, F2_bin, F3_bin, F4_bin)
 
 if __name__ == '__main__':
     main()
