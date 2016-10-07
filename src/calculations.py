@@ -71,17 +71,6 @@ class Calc:
 
         return broadened 
 
-    def WeightedAvg(self,Flux, Err):
-        """
-        Return the weighted average and Error bars.
-        """        
-        Flux        = self.ReplaceWithMedian(Flux)
-        Err         = self.ReplaceWithMedian(Err)
-        weights     = 1./(Err**2)
-        average     = np.average(Flux, axis=0, weights=weights)
-        errorbars_2 = np.sum((weights*Err)**2, axis=0)
-        return average, np.sqrt(errorbars_2)/ np.sum(weights, axis=0)
-
     def CF(self,flux,flux_err,ref,ref_err,n1,n2):
         flux        = self.ReplaceWithMedian(flux)
         flux_err    = self.ReplaceWithMedian(flux_err)
@@ -90,13 +79,6 @@ class Calc:
                         np.average(flux[n1:n2], axis=0, weights=1./(flux_err[n1:n2]**2))                
         return ratio
         
-    def Wave2RV(self,Wave,rest_wavelength,RV_BP):
-        c = 299792458
-        rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
-        delta_wavelength = Wave-rest_wavelength
-        RV = ((delta_wavelength/rest_wavelength)*c)/1.e3	# km/s
-        return RV
-
     def ExportShitedSpectra(self, w0,f0,f1,f2,f3,f4,AG,e0,e1,e2,e3,e4,eAG,NumFits,start,stop,rest_wavelength):
        
         # Creating empty arrays to be filled with
@@ -145,6 +127,10 @@ class Calc:
             return wavelength[0], flux[0], err[0]
         else:
             return wavelength[1], flux[1], err[1]   
+
+    def FindBestParams(self, params,F,E,Const,ModelType, param):
+        best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=10000)
+        return best_P
 
     def FindCenter(self,w,l):
         for i in range(len(w)):
@@ -204,19 +190,61 @@ class Calc:
             wavelength_AG, flux_AG, err_AG  = self.ExtractData(fits_location+fits[4],part)
             return wavelength0, wavelength1, wavelength2, wavelength3, flux0, flux1, flux2, flux3, err0, err1, err2, err3, wavelength_AG, flux_AG, err_AG, NumFits
 
+    def PrintParams(self, P, ConstB):
+        print "\n",Fore.GREEN,"Free parameters",Style.RESET_ALL
+        print Fore.RED,"Constant paramters",Style.RESET_ALL,"\n"
+        
+        print "ISM parameters:"
+        print "-"*50,Fore.GREEN
+        print "\tlog(N/1cm^2)\t=\t",P[0],"km/s"
+        print "\t     b\t\t=\t",    P[1],Fore.RED
+        print "\t     RV\t\t=\t",   ConstB[1],"km/s"
+        print "\t     T\t\t=\t",    ConstB[2],"K",Style.RESET_ALL
+        print "-"*50
+        
+        print "\nCS:"
+        print "-"*50,Fore.GREEN
+        print "\tlog(N/1cm^2)\t=\t",P[1]
+        print "\t     b\t\t=\t",    P[2],"km/s",Fore.RED
+        print "\t    RV\t\t=\t",    ConstB[3],"km/s"
+        print "\t     T\t\t=\t",    ConstB[4],"K",Style.RESET_ALL
+        print "-"*50,"\n"
+
+        print "\nExocomet:"
+        print "-"*50,Fore.GREEN
+        print "\tlog(N/1cm^2)\t=\t",P[3],"km/s"
+        print "\t    RV\t\t=\t",    P[4],"km/s"
+        print "\t     b\t\t=\t",    P[5],"km/s",Fore.RED
+        print "\t     T\t\t=\t",    ConstB[5],"K",Style.RESET_ALL
+        print "-"*50,"\n\n\n"
+
     def ReplaceWithMedian(self, X):
         X[np.isnan(X)] = 0
         m = np.median(X[X > 0])
         X[X == 0] = m
         return X
 
-    def ShiftAG(self, AG,units):
+    def RotBroad(self, W, F, eps, vsini):
+        from PyAstronomy import pyasl
+        return pyasl.rotBroad(W, F, eps, vsini)
+
+    def RVShift(self,rest_wavelength,RV):
+        # RV input has to be in km/s
+        c = 299792458
+        #rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
+        #delta_wavelength = Wave-rest_wavelength
+        #RV = ((delta_wavelength/rest_wavelength)*c)/1.e3    # km/s
+        delta_wavelength = rest_wavelength*RV*1.e3/c
+
+        return delta_wavelength
+
+    def NudgeSpec(self, Spec, units):
         zeros   = np.zeros(abs(units))
         if units > 0.:
-            AG      = np.concatenate((zeros,AG))[:-units]
+            Spec      = np.concatenate((zeros,Spec))[:-units]
         else:
-            AG      = np.concatenate((AG,zeros))[abs(units):]
-        return AG
+            Spec      = np.concatenate((Spec,zeros))[abs(units):]
+        return Spec
 
     def ShiftSpec(self, ref,spec,error,wave,start,stop,rest_wavelength):
         # This routine correlates the spectrum: spec
@@ -266,37 +294,23 @@ class Calc:
 
         return wave,spec,error
 
-    def PrintParams(self, P, ConstB):
-        print "\n",Fore.GREEN,"Free parameters",Style.RESET_ALL
-        print Fore.RED,"Constant paramters",Style.RESET_ALL,"\n"
-        
-        print "ISM parameters:"
-        print "-"*50,Fore.GREEN
-        print "\tlog(N/1cm^2)\t=\t",P[0],"km/s"
-        print "\t     b\t\t=\t",    P[1],Fore.RED
-        print "\t     RV\t\t=\t",   ConstB[1],"km/s"
-        print "\t     T\t\t=\t",    ConstB[2],"K",Style.RESET_ALL
-        print "-"*50
-        
-        print "\nCS:"
-        print "-"*50,Fore.GREEN
-        print "\tlog(N/1cm^2)\t=\t",P[1]
-        print "\t     b\t\t=\t",    P[2],"km/s",Fore.RED
-        print "\t    RV\t\t=\t",    ConstB[3],"km/s"
-        print "\t     T\t\t=\t",    ConstB[4],"K",Style.RESET_ALL
-        print "-"*50,"\n"
+    def Wave2RV(self,Wave,rest_wavelength,RV_BP):
+        c = 299792458
+        rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
+        delta_wavelength = Wave-rest_wavelength
+        RV = ((delta_wavelength/rest_wavelength)*c)/1.e3    # km/s
+        return RV
 
-        print "\nExocomet:"
-        print "-"*50,Fore.GREEN
-        print "\tlog(N/1cm^2)\t=\t",P[3],"km/s"
-        print "\t    RV\t\t=\t",    P[4],"km/s"
-        print "\t     b\t\t=\t",    P[5],"km/s",Fore.RED
-        print "\t     T\t\t=\t",    ConstB[5],"K",Style.RESET_ALL
-        print "-"*50,"\n\n\n"
-
-    def FindBestParams(self, params,F,E,Const,ModelType, param):
-        best_P, success = leastsq(s.chi2_lm, params, args=(F,E,Const,ModelType, param), maxfev=10000)
-        return best_P
+    def WeightedAvg(self,Flux, Err):
+        """
+        Return the weighted average and Error bars.
+        """        
+        Flux        = self.ReplaceWithMedian(Flux)
+        Err         = self.ReplaceWithMedian(Err)
+        weights     = 1./(Err**2)
+        average     = np.average(Flux, axis=0, weights=weights)
+        errorbars_2 = np.sum((weights*Err)**2, axis=0)
+        return average, np.sqrt(errorbars_2)/ np.sum(weights, axis=0)
 
     def Window(self, param,W,F,E,WindowName):
         fit_start   = param["fit"]["windows"][WindowName]["start"]
