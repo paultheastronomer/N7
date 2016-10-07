@@ -80,6 +80,8 @@
 
 "BetaPictoris" : { 
     "RV": 20.5,
+    "vsini": 132,
+    "eps": 0.6,
     "part": "B"
     },
 
