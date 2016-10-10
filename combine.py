@@ -270,8 +270,12 @@ def main():
     Fx, Fy  = np.genfromtxt(stellar_dir+'t08000g45p00k2.flx',unpack=True,skip_header=3)
     
     # To speed up the code, only broaden region around NI
-    Wx = Wx[12200:16000]   
-    Fx = Fx[12200:16000]
+    Wx = Wx[13650:14000]   
+    Fx = Fx[13650:14000]
+
+    # Uncomment below for the region 1153 to 1268 Angstrom.
+    #Wx = Wx[12200:16000]   
+    #Fx = Fx[12200:16000]
 
     eps             = param["BetaPictoris"]["eps"]
     vsini           = param["BetaPictoris"]["vsini"]
@@ -281,16 +285,30 @@ def main():
 
     RotBroadSpec    = c.RotBroad(w0_0, FRot, eps, vsini)
 
+    # find a way to find the shift at each pixel.
+    # then shift the flux array accordingly.
+    # see line 53 in read_phoenix_spectra.pro
+
     # This hardcoded parts need approving
-    wshift  = c.RVShift(1200,40.)
-    units   = wshift/0.009965
+    w0_0_shift  = c.RVShift(w0_0,param["BetaPictoris"]["RV"])
+    
+    units = []
+    for i in range(len(w0_0)):
+        if param["display"]["window1"]["x1"] < w0_0[i] < param["display"]["window1"]["x2"]:
+            units.append(w0_0_shift[i])
 
-    RotBroadSpec_BP = c.NudgeSpec(RotBroadSpec, units)*1.1e-17
+    units = np.array(units)
+    unit = np.mean(units)/0.009965
 
-    plt.plot(w0_0, F_tot,color='black',lw=1.3)
-    plt.plot(w0_0,RotBroadSpec_BP,color='red')
+    RotBroadSpec_BP = c.NudgeSpec(RotBroadSpec, unit)*1.1e-17
+
+    plt.step(w0_0, F_tot,color='black',lw=1.3)
+    plt.plot(w0_0,RotBroadSpec_BP,color='red',lw=2)
+    #plt.step(Wx,Fx)
+    #plt.step(w0_0, F_tot/RotBroadSpec_BP,color='black',lw=1.3)
     plt.xlim(1195,1204)
     plt.ylim(0,1.8e-14)
+    #plt.ylim(0,1.8)
     plt.show()
 
     #W80, F80                      = np.genfromtxt(stellar_dir+param["files"]["stellar_spectrum1"],unpack=True)
