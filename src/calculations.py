@@ -234,7 +234,9 @@ class Calc:
         #rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
         #delta_wavelength = Wave-rest_wavelength
         #RV = ((delta_wavelength/rest_wavelength)*c)/1.e3    # km/s
+        
         delta_wavelength = rest_wavelength*RV*1.e3/c
+        #wave = delta_wavelength + rest_wavelength
 
         return delta_wavelength
 
