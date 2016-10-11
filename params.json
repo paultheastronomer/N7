@@ -1,8 +1,8 @@
 {
 "directories" : { 
-    "workdir": "/home/paw/science/betapic/data/HST/dat/",
+    "workdir": "/home/paw/science/betapic/data/HST/dat/shifted_spectra/",
     "stellardir": "/home/paw/science/betapic/data/stellar/",
-    "exoatmdir": "/nethome/pwilson/betapic/data/HST/dat/",
+    "exoatmdir": "/nethome/pwilson/betapic/data/HST/dat/shifted_spectra/",
     "2014": "/home/paw/science/betapic/data/HST/2014/visit_1/",
     "2015a": "/home/paw/science/betapic/data/HST/2015/visit_1/",
     "2015b": "/home/paw/science/betapic/data/HST/2015/visit_2/",
@@ -10,7 +10,7 @@
     }, 
 
 "files" : { 
-    "datafile": "B132L09W.dat",
+    "datafile": "NI_2016_10_05.txt",
     "stellar_spectrum1": "t08000g45p00k2_80.txt",
     "stellar_spectrum2": "t08000g45p00k2_130.txt"
     },
@@ -28,10 +28,10 @@
         },
     "window1"        : {
         "name"      : "window1",
-        "x1"        : 1198.4,
-        "x2"        : 1201.98,
+        "x1"        : 1197.0,
+        "x2"        : 1203.0,
         "y1"        : 0.0e-15,
-        "y2"        : 1.21e-14
+        "y2"        : 1.6e-14
         },
     "window2"        : {
         "name"      : "window2",
@@ -91,12 +91,12 @@
         "number" : 2,
         "window1"     : {
             "order"     : 2,
-            "start"     : 1198.20,
-            "stop"      : 1202.20,
+            "start"     : 1198.80,
+            "stop"      : 1202.25,
             "cut1"      : 1199.45,
             "cut2"      : 1199.9,
-            "cut3"      : 1200.15,
-            "cut4"      : 1201.36
+            "cut3"      : 1200.17,
+            "cut4"      : 1201.20
         },
         "window2"     : {
             "order"     : 1,
@@ -109,20 +109,20 @@
         }
     },
     "ISM"    : {
-        "log(H)"    : 14.43,
+        "log(H)"    : 14.42,
         "RV"        : 10.00,
         "T"         : 6000,
         "b"	        : 3.00
     },
     "disk" : {    
-        "log(H)"    : 16.17,
+        "log(H)"    : 16.86,
         "RV"        : 20.50,
         "T"         : 10.0,
         "b"	        : 3.00
     },
     "exocomet" : {    
-        "log(H)"    : 16.59,
-        "RV"        : 36.3,
+        "log(H)"    : 17.14,
+        "RV"        : 35.0,
         "T"         : 10.0,
         "b"	        : 3.00
     }    

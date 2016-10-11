@@ -89,7 +89,7 @@ class Plotting:
         #plt.ylim(0.,2.e-15)
         plt.show()
 
-    def BasicPlot(self,param,window,W,F,E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved):
+    def BasicPlot(self,param,window,W, F, E, Wc,Fc,Ec,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved):
 
         fig = self.FigParams()
         
@@ -103,17 +103,17 @@ class Plotting:
         c3  = param["fit"]["windows"][window]["cut3"]
         c4  = param["fit"]["windows"][window]["cut4"]
 
-        closest_W1  = min(W, key=lambda x:abs(x-c1))
-        i1          = list(W).index(closest_W1)
+        closest_W1  = min(Wc, key=lambda x:abs(x-c1))
+        i1          = list(Wc).index(closest_W1)
 
-        closest_W2  = min(W, key=lambda x:abs(x-c2))
-        i2          = list(W).index(closest_W2)
+        closest_W2  = min(Wc, key=lambda x:abs(x-c2))
+        i2          = list(Wc).index(closest_W2)
 
-        closest_W3  = min(W, key=lambda x:abs(x-c3))
-        i3          = list(W).index(closest_W3)
+        closest_W3  = min(Wc, key=lambda x:abs(x-c3))
+        i3          = list(Wc).index(closest_W3)
 
-        closest_W4  = min(W, key=lambda x:abs(x-c4))
-        i4          = list(W).index(closest_W4)
+        closest_W4  = min(Wc, key=lambda x:abs(x-c4))
+        i4          = list(Wc).index(closest_W4)
 
         '''
         plt.figure(figsize=(8,5))
@@ -131,7 +131,7 @@ class Plotting:
         plt.plot(l,f_abs_ism,color="#0386FF",lw=2)
         plt.plot(l,f_abs_bp,color="#00B233",lw=2)   
         plt.plot(l,f_abs_X,color="#FF9303",lw=2)
-        plt.plot(W,f_fit,lw=2,color='#FF281C',label=r'Best fit')
+        plt.plot(Wc,f_fit,lw=2,color='#FF281C',label=r'Best fit')
 
         #plt.step(W,F-f_fit,lw=2,color='#FF281C',label=r'Best fit')
         #plt.show()
@@ -139,9 +139,9 @@ class Plotting:
 
         if param["display"]["bin"] > 1:
             bin_size = param["display"]["bin"]
-            Wb, Fb, Eb  = c.BinData(W,F,E,bin_size)
+            Wb, Fb, Eb  = c.BinData(Wc,Fc,Ec,bin_size)
             plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
-            plt.step(Wb,Fb,color="#333333")
+            plt.step(W,F,color="#C0C0C0")
             plt.step(Wb[:i1/bin_size],Fb[:i1/bin_size],color="black",lw=2)
             plt.step(Wb[i2/bin_size:i3/bin_size],Fb[i2/bin_size:i3/bin_size],color="black",lw=2)
             plt.step(Wb[i4/bin_size:],Fb[i4/bin_size:],color="black",lw=2)
@@ -151,10 +151,10 @@ class Plotting:
             plt.plot([line1,line1],[0.2e-14,0.3e-14],color='black')
             plt.plot([line2,line2],[0.2e-14,0.3e-14],color='black')
             plt.errorbar(W,np.ones(len(W))*2e-14,yerr=E)
-            plt.step(W,F,color="#333333")
-            plt.step(W[:i1],F[:i1],color="black",lw=2)
-            plt.step(W[i2:i3],F[i2:i3],color="black",lw=2)
-            plt.step(W[i4:],F[i4:],color="black",lw=2)
+            plt.step(W,F,color="#C0C0C0")
+            plt.step(Wc[:i1],Fc[:i1],color="black",lw=2)
+            plt.step(Wc[i2:i3],Fc[i2:i3],color="black",lw=2)
+            plt.step(Wc[i4:],Fc[i4:],color="black",lw=2)
 
 
         plt.xlim(x1,x2)
@@ -174,5 +174,5 @@ class Plotting:
 
         plt.minorticks_on()
         fig.tight_layout()
-        fig.savefig("plots/"+window+".pdf")
+        #fig.savefig("plots/"+window+".pdf")
         plt.show()
