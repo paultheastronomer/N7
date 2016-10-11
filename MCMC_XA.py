@@ -2,10 +2,12 @@
 import numpy as np
 import json, sys
 
+from src.calculations import Calc
 from src.statistics import Stats
 from src.model import Model
 from src.mcmc import MCMC
 
+c   = Calc()
 s   = Stats()
 m   = Model()
 mc  = MCMC() 
@@ -14,27 +16,6 @@ def Initialise():
     with open('params.json') as param_file:    
         param = json.load(param_file)
     return param
-
-def Window(param,W,F,E,WindowName):
-    fit_start   = param["fit"]["windows"][WindowName]["start"]
-    fit_end     = param["fit"]["windows"][WindowName]["stop"]
-
-    s_i = []
-    for i in range(len(W)):
-        if fit_start <= W[i] <= fit_end:
-            s_i.append(i)
-    
-    W    = W[s_i[0]:s_i[-1]]
-    F    = F[s_i[0]:s_i[-1]]
-    E    = E[s_i[0]:s_i[-1]]
-
-    # Create an array of RV measurements with a resolution of 1 km/s
-    v    = np.arange(-len(W)-100,len(W)+100,1) # RV values
-
-    # Calculate the corresponding wavelengths
-    l    = (W[0]+W[-1])/2.*(1.0 + v/3e5)
-
-    return W, F, E, v, l
 
 def main():    
 
@@ -54,12 +35,12 @@ def main():
                       ,unpack=True) 
 
     if Nwindows == 1:
-        W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
+        W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
         ConstA              = [W1,F1,E1,l1]
     
     if Nwindows == 2:
-        W1, F1, E1, v1, l1  = Window(param,W,F,E,"window1")
-        W2, F2, E2, v2, l2  = Window(param,W,F,E,"window2")
+        W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
+        W2, F2, E2, v2, l2  = c.Window(param,W,F,E,"window2")
         ConstA              = [W1,W2,F1,F2,E1,E2,l1,l2]
 
     # The parameters listed in ConstB are not dependant on the number of windows used.
@@ -94,10 +75,11 @@ def main():
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
     step = np.array([0.2,0.0,0.2,0.0,0.1,1.5,0.0])
-    step = np.array([0.1,0.0,0.1,0.0,0.0,0.0,0.0])
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
+    #step = np.array([0.1,0.0,0.1,0.0,0.0,0.0,0.0])
+
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e3)
     
-    outfile = 'chains/chain_T_'+sys.argv[1]
+    outfile = 'chains/chain_V_'+sys.argv[1]
     np.savez(outfile, nh_ISM = chain[:,0], b_ISM = chain[:,1], nh_CS = chain[:,2], b_CS = chain[:,3], nh_X = chain[:,4], RV_X = chain[:,5], b_X = chain[:,6])
 
     Pout = chain[moves,:]
