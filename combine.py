@@ -5,8 +5,10 @@ import json, sys
 
 from src.calculations import Calc
 from src.plotting import Plotting
+from src.model import Model
 c   = Calc()
 p   = Plotting()
+m   = Model()
 
 def Initialise():
     with open('params.json') as param_file:    
@@ -264,44 +266,56 @@ def main():
     # Temp code
     w0_0, F_tot, F_tot_err = np.genfromtxt(dat_directory+'/shifted_spectra/NI_2016_10_05.txt',unpack=True)
 
+    # This next part of the code is not used (for the time being)
+    # It was used to model the continuum using a stellar model.
     # Rotationally broaden a UVBLUE model of beta pic which can later be used to model the continuum.
     # Loading the UVBLUE data:
-    Wx      = np.genfromtxt(stellar_dir+'UVBLUE_wavelengths.dat',unpack=True)
-    Fx, Fy  = np.genfromtxt(stellar_dir+'t08000g45p00k2.flx',unpack=True,skip_header=3)
+    #Wx      = np.genfromtxt(stellar_dir+'UVBLUE_wavelengths.dat',unpack=True)
+    #Fx, Fy  = np.genfromtxt(stellar_dir+'t08000g45p00k2.flx',unpack=True,skip_header=3)
     
     # To speed up the code, only broaden region around NI
-    Wx = Wx[13650:14000]   
-    Fx = Fx[13650:14000]
+    #Wx = Wx[13650:14000]   
+    #Fx = Fx[13650:14000]
 
     # Uncomment below for the region 1153 to 1268 Angstrom.
     #Wx = Wx[12200:16000]   
     #Fx = Fx[12200:16000]
 
-    eps             = param["BetaPictoris"]["eps"]
-    vsini           = param["BetaPictoris"]["vsini"]
-
-    # Interpolate synthetic spectrum onto the wavelength scale of the COS data
-    FRot            = np.interp(w0_0,Wx,Fx)
-
-    RotBroadSpec    = c.RotBroad(w0_0, FRot, eps, vsini)
+    #eps             = param["BetaPictoris"]["eps"]
+    #vsini           = param["BetaPictoris"]["vsini"]
+    #WxLSF           = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], Wx)
 
     # find a way to find the shift at each pixel.
     # then shift the flux array accordingly.
     # see line 53 in read_phoenix_spectra.pro
 
     # This hardcoded parts need approving
-    w0_0_shift  = c.RVShift(w0_0,param["BetaPictoris"]["RV"])
-    
-    units = []
-    for i in range(len(w0_0)):
-        if param["display"]["window1"]["x1"] < w0_0[i] < param["display"]["window1"]["x2"]:
-            units.append(w0_0_shift[i])
 
-    units = np.array(units)
-    unit = np.mean(units)/0.009965
+    #w0_0_shift  = c.RVShift(w0_0,param["BetaPictoris"]["RV"])
 
-    RotBroadSpec_BP = c.NudgeSpec(RotBroadSpec, unit)*1.1e-17
+    #kernel1      =   m.LSF(param["lines"]["line"]["N1"]["Wavelength"], Wx)
 
+    #Fx_con   =   np.convolve(Fx, kernel1, mode='valid')[:-1]
+ 
+    # Interpolate synthetic spectrum onto the wavelength scale of the COS data
+    #FRot            = np.interp(w0_0,Wx,Fx_con)
+
+    #RotBroadSpec    = c.RotBroad(w0_0, FRot, eps, vsini) 
+
+
+    #units = []
+    #for i in range(len(w0_0)):
+    #    if param["display"]["window1"]["x1"] < w0_0[i] < param["display"]["window1"]["x2"]:
+    #        units.append(w0_0_shift[i])
+
+    #units = np.array(units)
+    #unit = np.mean(units)/0.009965
+
+    #RotBroadSpec_BP = c.NudgeSpec(RotBroadSpec, unit)*1.15e-17
+
+    print len(Wx),len(Fx_con)
+    #plt.plot(Wx,Fx)
+    #plt.plot(Wx,Fx_con)
     plt.step(w0_0, F_tot,color='black',lw=1.3)
     plt.plot(w0_0,RotBroadSpec_BP,color='red',lw=2)
     #plt.step(Wx,Fx)
