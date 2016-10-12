@@ -111,11 +111,11 @@ def main():
     # Using the parameters above create a model then plot the result.
     if Nwindows == 1:
         f_fit1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(P,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, W1, F1, E1, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
     if Nwindows == 2:
         f_fit1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, W1, F1, E1, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
-        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, W2, F2, E2, l2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
+        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
 
     # Compute the goodness of fit.
     #X = [F1, E1, f_fit1]
