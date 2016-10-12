@@ -59,6 +59,8 @@ class MCMC:
 
         while P[0] > 15.0:
           P[0]        = P[0] - jump[0]
+        #while P[0] < 10.0:
+        #  P[0]        = P[0] - jump[0]
 
         new_fit     = m.Model(P, Const, ModelType, param)[0]
         X           = X[0],X[1],new_fit
