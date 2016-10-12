@@ -27,7 +27,7 @@ def main():
     Line            = param["lines"]["line"]["N1"]["Wavelength"]
     RV_BP           = param["BetaPictoris"]["RV"]
 
-    #'''
+
     # Load data visit 1 2014
     fits_location   = param["directories"]["2014"]
     w0_0,f0_0,e0_0,w_AG_0,f_AG_0,e_AG_0,NumFits_0                                               = c.GetData(fits_location,part)
@@ -43,6 +43,7 @@ def main():
     # Load data visit 3 2016
     fits_location   = param["directories"]["2016"]
     w0_3,w1_3,w2_3,w3_3,f0_3,f1_3,f2_3,f3_3,e0_3,e1_3,e2_3,e3_3,w_AG_3,f_AG_3,e_AG_3,NumFits_3  = c.GetData(fits_location,part)    
+
     
     # The next part of the code is aimed at finding quiet regions in the spectra
     # not affected by FEB activity. The binning of the data is done so that
@@ -101,6 +102,7 @@ def main():
     print "\n\nShifting 30 Jan 2016 observations:"
     W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3    = c.ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,Line)
 
+    '''
     # Save the shifted from each visit into .dat file
     np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
     np.savetxt(param["directories"]["workdir"]+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
@@ -208,8 +210,8 @@ def main():
     #############################################################################################
 
     # All data of the debris disk combined
-    Flux = np.array([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
-    Err  = np.array([E0_0,Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
+    #Flux = np.array([F0_0,Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
+    #Err  = np.array([E0_0,Ec[0],Ec[1],Ec[2],Ec[3],Ec[4],Ec[5],Ec[6],Ec[7],Ec[8],Ec[9],Ec[10]])
 
     # All data combined except the 2014 data due to large amounts of airglow
     Flux_no_2014 = np.array([Fc[0],Fc[1],Fc[2],Fc[3],Fc[4],Fc[5],Fc[6],Fc[7],Fc[8],Fc[9],Fc[10]])
@@ -234,7 +236,7 @@ def main():
     F3, E3 =  c.WeightedAvg(Flux3,Err3)
     F4, E4 =  c.WeightedAvg(Flux4,Err4)
     
-    #F_tot, F_tot_err    =  F0_0, E0_0
+    #F_tot, F_tot_err    =  Fc[3], Ec[3]
     #############################################################################################
 
     W_bin, F_tot_bin, E_tot_bin =   c.BinData(w0_0, F_tot, F_tot_err,bin_size)
@@ -244,11 +246,11 @@ def main():
     W_bin, F4_bin, E4_bin       =   c.BinData(w0_0,F4,E4,bin_size)
 
     # Save the combined spectrum
-    #np.savetxt(dat_directory+"/shifted_spectra/"+"NI_2016_10_05.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
-    #'''
+    #np.savetxt(param["directories"]["workdir"]+"NI_2016_10_12.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
+    '''
     
     # Temp code
-    #w0_0, F_tot, F_tot_err = np.genfromtxt(dat_directory+'/NI_2016_10_05.txt',unpack=True)
+    w0_0, F_tot, F_tot_err = np.genfromtxt(param["directories"]["workdir"]+'NI_2016_10_12.txt',unpack=True)
 
     #p.CombinedPlot(param, "window1", W, F_tot, W_bin, F2_bin, F3_bin, F4_bin)
 
@@ -290,7 +292,7 @@ def main():
     kernel1         = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], w0_0)
     Fx_con          = np.convolve(RotBroadSpec, kernel1, mode='valid')[:-1]
 
-    #np.savetxt(dat_directory+"div_by_UVBLUE_2016_10_12.dat",np.column_stack((w0_0, F_tot/RotBroadSpec, F_tot_err)))
+    np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_10_12.dat",np.column_stack((w0_0, F_tot/RotBroadSpec, F_tot_err)))
 
     fig = plt.figure(figsize=(8,5))
     #fig = plt.figure(figsize=(10,14))
@@ -305,10 +307,9 @@ def main():
     plt.rcParams['text.latex.unicode'] = True
 
     plt.step(w0_0, F_tot,color='black',lw=1.3)
-    #plt.plot(w0_0,RotBroadSpec_BP,color='red',lw=2)
-    #plt.plot(WP,FP,color='orange',lw=2)
-    #plt.plot(WP130,FP130,color='blue',lw=2)
-    #plt.plot(WP80,FP80,color='green',lw=2)
+    plt.step(w0_0,AG1,lw=1.2,color="#FF9303",label='2015v1')
+    plt.step(w0_0,AG2,lw=1.2,color="#0386FF",label='2015v2')
+    plt.step(w0_0,AG3,lw=1.2,color="#00B233",label='2016v3')
     plt.plot(w0_0,RotBroadSpec*1e-7,color='red',lw=2)
     #plt.step(w0_0, 0.85e3*(F_tot/RotBroadSpec),color='black',lw=1.3)
     #plt.xlim(1195,1204)
