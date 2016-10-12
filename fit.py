@@ -53,6 +53,9 @@ def main():
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
                       ,unpack=True)
 
+    # Need to change later
+    #F = F*1e-7
+
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
         ConstA              = [W1,F1,E1,l1]
@@ -94,26 +97,30 @@ def main():
                 param["fit"]["exocomet"]["RV"],
                 param["fit"]["exocomet"]["b"]]
  
-    #'''
-    #c.PrintParams(Par, ConstB)
-    #P =  c.FindBestParams(Par, F1, E1, Const, ModelType, param)
-    #print "Best fit paramters:"
-    #c.PrintParams(P, ConstB)
-    #'''
+    if param["fit"]["dofit"] == "yes":
+        P =  c.FindBestParams(Par, F1, E1, Const, ModelType, param)
+    else:
+        P = Par
+        #'''
+        #c.PrintParams(Par, ConstB)
+        #P =  c.FindBestParams(Par, F1, E1, Const, ModelType, param)
+        #print "Best fit paramters:"
+        #c.PrintParams(P, ConstB)
+        #'''
 
     # Using the parameters above create a model then plot the result.
     if Nwindows == 1:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(Par,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
+        f_fit1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = m.Model(P,Const,ModelType,param)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, W1, F1, E1, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1)    
     if Nwindows == 2:
-        f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(Par,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, W1, F1, E1, l1, f_fit1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
-        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, W2, F2, E2, l2, f_fit2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
+        f_fit1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, W1, F1, E1, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
+        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, W2, F2, E2, l2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
 
     # Compute the goodness of fit.
-    X = [F1, E1, f_fit1]
-    print "DOF:\t\t",len(W1)-len(Par)
-    print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(Par)),"\n"
+    #X = [F1, E1, f_fit1]
+    #print "DOF:\t\t",len(W1)-len(P)
+    #print "Chi2 reduced:\t",s.chi2(X)/(len(F1)-len(P)),"\n"
 
 if __name__ == '__main__':
     main()
