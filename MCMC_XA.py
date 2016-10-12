@@ -35,7 +35,7 @@ def main():
                       ,unpack=True) 
 
     # Need to change later
-    #F = F*1e3
+    #F = F*1e-7
 
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
@@ -80,7 +80,7 @@ def main():
     step = np.array([0.1,0.0,0.1,0.0,0.1,1.0,0.0])
     #step = np.array([0.1,0.0,0.1,0.0,0.0,0.0,0.0])
 
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e5)
     
     outfile = 'chains/chain_U_'+sys.argv[1]
     np.savez(outfile, nh_ISM = chain[:,0], b_ISM = chain[:,1], nh_CS = chain[:,2], b_CS = chain[:,3], nh_X = chain[:,4], RV_X = chain[:,5], b_X = chain[:,6])
