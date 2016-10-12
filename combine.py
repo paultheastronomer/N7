@@ -20,9 +20,6 @@ def main():
     # Read all parameters from params.json file.
     param           = Initialise()
 
-
-    dat_directory   = param["directories"]["workdir"]
-    stellar_dir     = param["directories"]["stellardir"]
     part            = param["BetaPictoris"]["part"]   # A = red, B = blue
     bin_size        = param["display"]["bin"]
     x_lim1          = param["display"]["overview"]["Ax1"]
@@ -30,10 +27,7 @@ def main():
     Line            = param["lines"]["line"]["N1"]["Wavelength"]
     RV_BP           = param["BetaPictoris"]["RV"]
 
-    '''
-    #c.BroadenSpec(1180, 1210, 1, 80)
-    #sys.exit()
-
+    #'''
     # Load data visit 1 2014
     fits_location   = param["directories"]["2014"]
     w0_0,f0_0,e0_0,w_AG_0,f_AG_0,e_AG_0,NumFits_0                                               = c.GetData(fits_location,part)
@@ -66,11 +60,6 @@ def main():
     f1_bin = c.ReplaceWithMedian(f1_bin)
     f2_bin = c.ReplaceWithMedian(f2_bin)
     f3_bin = c.ReplaceWithMedian(f3_bin)
-    
-    #AG0_bin = c.ReplaceWithMedian(AG0_bin)
-    #AG1_bin = c.ReplaceWithMedian(AG1_bin)
-    #AG2_bin = c.ReplaceWithMedian(AG2_bin)
-    #AG3_bin = c.ReplaceWithMedian(AG3_bin)
 
     ratio1  = f0_bin/f1_bin
     ratio2  = f0_bin/f2_bin
@@ -83,22 +72,19 @@ def main():
         s1 = 6100
         s2  = 11400  
     else:
-        s1 = 10000
-        s2  = 13473
+        #s1 = 10000
+        #s2  = 13473
         #s1 = 12550  # Region around a SII line
         #s2 = 12750
-        #s1 = 7200  # Region just left of the NI line
-        #s2 = 7400
-
-
+        s1 = 7200  # Region just left of the NI line
+        s2 = 7400
 
     # Creates a figure showing the quiet regions of the spectra.
-    #p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
+    p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
     #sys.exit()
-    
 
     # --------------------------------------------------------------------------
-    # The heart of the code. This is where the the quiet region of the spectra
+    # This is where the the quiet region of the spectra
     # are used to cross correlate the spectra and calculate the shift.
     # --------------------------------------------------------------------------
 
@@ -116,12 +102,10 @@ def main():
     W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3    = c.ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,Line)
 
     # Save the shifted from each visit into .dat file
-    '''
-    #np.savetxt(dat_directory+"/shifted_spectra/"+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
-    #np.savetxt(dat_directory+"/shifted_spectra/"+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
-    #np.savetxt(dat_directory+"/shifted_spectra/"+"V3.dat",np.column_stack((W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2)))
-    #np.savetxt(dat_directory+"/shifted_spectra/"+"V4.dat",np.column_stack((W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3)))
-    '''
+    np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
+    np.savetxt(param["directories"]["workdir"]+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
+    np.savetxt(param["directories"]["workdir"]+"V3.dat",np.column_stack((W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2)))
+    np.savetxt(param["directories"]["workdir"]+"V4.dat",np.column_stack((W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3)))
 
     # For a better naming convention we will rename the following variables
     F0_0    = f0_0
@@ -243,17 +227,17 @@ def main():
     Flux4 = np.array([Fc[7],Fc[8],Fc[9],Fc[10]])
     Err4  = np.array([Ec[7],Ec[8],Ec[9],Ec[10]])
     
-    F_tot, F_tot_err    =  c.WeightedAvg(Flux_no_2014,Err_no_2014)
+    F_tot, F_tot_err = c.WeightedAvg(Flux_no_2014,Err_no_2014)
 
-    F1, E1    =  F0_0, E0_0
-    F2, E2    =  c.WeightedAvg(Flux2,Err2)
-    F3, E3    =  c.WeightedAvg(Flux3,Err3)
-    F4, E4    =  c.WeightedAvg(Flux4,Err4)
+    F1, E1 =  F0_0, E0_0
+    F2, E2 =  c.WeightedAvg(Flux2,Err2)
+    F3, E3 =  c.WeightedAvg(Flux3,Err3)
+    F4, E4 =  c.WeightedAvg(Flux4,Err4)
     
     #F_tot, F_tot_err    =  F0_0, E0_0
     #############################################################################################
 
-    W_bin, F_tot_bin, E_tot_bin = c.BinData(w0_0, F_tot, F_tot_err,bin_size)
+    W_bin, F_tot_bin, E_tot_bin =   c.BinData(w0_0, F_tot, F_tot_err,bin_size)
     W_bin, F1_bin, E1_bin       =   c.BinData(w0_0,F1,E2,bin_size)
     W_bin, F2_bin, E2_bin       =   c.BinData(w0_0,F2,E2,bin_size)
     W_bin, F3_bin, E3_bin       =   c.BinData(w0_0,F3,E3,bin_size)
@@ -261,31 +245,75 @@ def main():
 
     # Save the combined spectrum
     #np.savetxt(dat_directory+"/shifted_spectra/"+"NI_2016_10_05.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
-    '''
+    #'''
     
     # Temp code
-    w0_0, F_tot, F_tot_err = np.genfromtxt(dat_directory+'/shifted_spectra/NI_2016_10_05.txt',unpack=True)
+    #w0_0, F_tot, F_tot_err = np.genfromtxt(dat_directory+'/NI_2016_10_05.txt',unpack=True)
+
+    #p.CombinedPlot(param, "window1", W, F_tot, W_bin, F2_bin, F3_bin, F4_bin)
+
+    # Stellar code part
+    Wx      = np.genfromtxt(param["directories"]["stellardir"]+'UVBlue/wl.t08052g415p004.dat',unpack=True,usecols=0)
+    H_nu    = np.genfromtxt(param["directories"]["stellardir"]+'UVBlue/sp.t08052g415p004.dat',unpack=True,skip_header=3,usecols=0)
+    c_light = 299792458
+    Fx      = H_nu*4*np.pi*c_light/Wx**2
+
+    # To speed up the code, only broaden region around NI
+    #Wx = Wx[13650:14000]   
+    #Fx = Fx[13650:14000]
+
+    #Shift to BetaPic RV
+    Wx=Wx*(1.+param["BetaPictoris"]["RV"]/3e5)
+
+    #Apply shift
+    #for i in range(len(Wx)):
+    #    Wx[i] = Wx[i]+0.11
+
+    # Load broadening parameters
+    eps             = param["BetaPictoris"]["eps"]
+    vsini           = param["BetaPictoris"]["vsini"]
+
+    # Interpolate synthetic spectrum onto the wavelength scale of the COS data
+    Fint            = np.interp(w0_0,Wx,Fx)
+
+    #s1 = 10000
+    #s2  = 13473
+
+    # Uncomment below to check shift in synthetic spectrum
+    # relative to COS spectrum.
+    #c.ShiftSpec(F_tot,Fint,F_tot_err,w0_0,s1,s2,Line)
+
+    # Rotationally broaden spectrum
+    RotBroadSpec    = c.RotBroad(w0_0, Fint, eps, vsini)
+
+    # Perform LSF calculation
+    kernel1         = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], w0_0)
+    Fx_con          = np.convolve(RotBroadSpec, kernel1, mode='valid')[:-1]
+
+    #np.savetxt(dat_directory+"div_by_UVBLUE_2016_10_12.dat",np.column_stack((w0_0, F_tot/RotBroadSpec, F_tot_err)))
+
+    fig = plt.figure(figsize=(8,5))
+    #fig = plt.figure(figsize=(10,14))
+    #fig = plt.figure(figsize=(14,10))
+
+    fontlabel_size  = 18
+    tick_size       = 18
+    params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': 15, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
+    plt.rcParams.update(params)
+    plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+    plt.rcParams['text.usetex'] = True
+    plt.rcParams['text.latex.unicode'] = True
 
     plt.step(w0_0, F_tot,color='black',lw=1.3)
-
-    #plt.step(Wx,Fx)
-    #plt.step(w0_0, F_tot/RotBroadSpec_BP,color='black',lw=1.3)
-    plt.xlim(1195,1204)
-    plt.ylim(0,1.8e-14)
-    #plt.ylim(0,1.8)
+    #plt.plot(w0_0,RotBroadSpec_BP,color='red',lw=2)
+    #plt.plot(WP,FP,color='orange',lw=2)
+    #plt.plot(WP130,FP130,color='blue',lw=2)
+    #plt.plot(WP80,FP80,color='green',lw=2)
+    plt.plot(w0_0,RotBroadSpec*1e-7,color='red',lw=2)
+    #plt.step(w0_0, 0.85e3*(F_tot/RotBroadSpec),color='black',lw=1.3)
+    #plt.xlim(1195,1204)
+    #plt.ylim(0,2e-14)
     plt.show()
-
-    #W80, F80                      = np.genfromtxt(stellar_dir+param["files"]["stellar_spectrum1"],unpack=True)
-    #W130, F130                      = np.genfromtxt(stellar_dir+param["files"]["stellar_spectrum2"],unpack=True)
-
-    #F80i                         = np.interp(w0_0,W80,F80)
-    #F130i                         = np.interp(w0_0,W130,F130)
-
-    #W_dummy, F80i_bin, E_dummy    = c.BinData(w0_0, F80i, F_tot_err,bin_size)
-    #W_dummy, F130i_bin, E_dummy    = c.BinData(w0_0, F130i, F_tot_err,bin_size)
-
-
-    #p.CombinedPlot(param, param["display"]["window1"]["name"], w0_0, W_bin, F_tot, F_tot_err, F_tot_bin, F80i, F80i_bin, F130i, F130i_bin, F1_bin, F2_bin, F3_bin, F4_bin)
 
 if __name__ == '__main__':
     main()
