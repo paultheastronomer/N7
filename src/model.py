@@ -147,7 +147,6 @@ class Model:
         closest_W4  = min(W, key=lambda x:abs(x-c4))
         i4          = list(W).index(closest_W4)
 
-        
         W = np.concatenate((W[:i1],W[i2:i3],W[i4:]))
         F = np.concatenate((F[:i1],F[i2:i3],F[i4:]))
         E = np.concatenate((E[:i1],E[i2:i3],E[i4:]))
@@ -322,10 +321,10 @@ class Model:
             unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
             
         if Nwindows == 1:
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
+            return f_abs_int1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
         
         if Nwindows == 2:
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
+            return f_abs_int1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
 
     def Model(self, params, Const, ModelType, param):
         
@@ -339,10 +338,9 @@ class Model:
         if Nwindows == 1:
             # Fixed parameters
             W1,F1,E1,l1,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X  = Const
-            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1 = self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
+            return self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
+
         if Nwindows == 2:
             # Fixed parameters
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X   = Const
-            f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2  = self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
-            return f_abs_int1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
+            return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 

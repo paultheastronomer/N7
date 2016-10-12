@@ -68,7 +68,7 @@ class Plotting:
         #plt.savefig('FEB_quiet_regions.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
         plt.show()
 
-    def CombinedPlot(self, param, window, w, W, F_tot, F_tot_err, F_tot_bin, FS1, FS1_bin, FS2, FS2_bin, F1, F2, F3, F4):
+    def CombinedPlot(self, param, window, W, F_tot, W_bin, F2_bin, F3_bin, F4_bin):
         
         fig = self.FigParams()
 
@@ -77,16 +77,16 @@ class Plotting:
         y1  = param["display"][window]["y1"]
         y2  = param["display"][window]["y2"]
 
-        #plt.step(W,F1/F_tot,lw=1.2,color="#FF281C",label='2014')
-        #plt.step(W,F2,lw=1.2,color="#FF9303",label='2015v1')
-        #plt.step(W,F3,lw=1.2,color="#0386FF",label='2015v2')
-        #plt.step(W,F4,lw=1.2,color="#00B233",label='2016v3')
-        plt.step(w+0.12,FS1*9.8e-18,lw=1.2,color="blue",label='Total')
-        plt.step(w+0.12,FS2*9.8e-18,lw=1.2,color="red",label='Total')
-        plt.step(W,F_tot_bin,lw=1.2,color="black",label='Total')
-        #plt.xlim(x1,x2)
-        plt.ylim(y1,y2*15)
-        #plt.ylim(0.,2.e-15)
+        plt.step(W_bin, F2_bin, color='#FF9303', lw=1.3)
+        plt.step(W_bin, F3_bin, color='#0386FF', lw=1.3)
+        plt.step(W_bin, F4_bin, color='#00B233', lw=1.3)
+        plt.step(W, F_tot, color='black', lw=1.3)
+        plt.xlim(x1,x2)
+        plt.ylim(y1,y2)
+        plt.xlabel(r'Wavelength (\AA)')
+        plt.ylabel(r'Flux (erg/s/cm$^2$/\AA)')
+        plt.minorticks_on()
+        fig.tight_layout()
         plt.show()
 
     def BasicPlot(self,param,window,W, F, E, Wc,Fc,Ec,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X,unconvolved):
@@ -115,23 +115,11 @@ class Plotting:
         closest_W4  = min(Wc, key=lambda x:abs(x-c4))
         i4          = list(Wc).index(closest_W4)
 
-        '''
-        plt.figure(figsize=(8,5))
-
-        fontlabel_size  = 18
-        tick_size       = 18
-        params = {'backend': 'wxAgg', 'lines.markersize' : 2, 'axes.labelsize': fontlabel_size, 'font.size': fontlabel_size, 'legend.fontsize': 15, 'xtick.labelsize': tick_size, 'ytick.labelsize': tick_size, 'text.usetex': True}
-        plt.rcParams.update(params)
-        plt.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-        plt.rcParams['text.usetex'] = True
-        plt.rcParams['text.latex.unicode'] = True
-        '''
-
         plt.plot(l,unconvolved,color="cyan")
         plt.plot(l,f_abs_ism,color="#0386FF",lw=2)
         plt.plot(l,f_abs_bp,color="#00B233",lw=2)   
         plt.plot(l,f_abs_X,color="#FF9303",lw=2)
-        plt.plot(Wc,f_fit,lw=2,color='#FF281C',label=r'Best fit')
+        plt.plot(l,f_fit,lw=2,color='#FF281C',label=r'Best fit')
 
         #plt.step(W,F-f_fit,lw=2,color='#FF281C',label=r'Best fit')
         #plt.show()
@@ -139,12 +127,13 @@ class Plotting:
 
         if param["display"]["bin"] > 1:
             bin_size = param["display"]["bin"]
-            Wb, Fb, Eb  = c.BinData(Wc,Fc,Ec,bin_size)
-            plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
-            plt.step(W,F,color="#C0C0C0")
-            plt.step(Wb[:i1/bin_size],Fb[:i1/bin_size],color="black",lw=2)
-            plt.step(Wb[i2/bin_size:i3/bin_size],Fb[i2/bin_size:i3/bin_size],color="black",lw=2)
-            plt.step(Wb[i4/bin_size:],Fb[i4/bin_size:],color="black",lw=2)
+            Wcb, Fcb, Ecb   = c.BinData(Wc,Fc,Ec,bin_size)
+            Wb, Fb, Eb      = c.BinData(W,F,E,bin_size)
+            #plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
+            plt.step(Wb,Fb,color="#C0C0C0")
+            plt.step(Wcb[:i1/bin_size],Fcb[:i1/bin_size],color="black",lw=2)
+            plt.step(Wcb[i2/bin_size:i3/bin_size],Fcb[i2/bin_size:i3/bin_size],color="black",lw=2)
+            plt.step(Wcb[i4/bin_size:],Fcb[i4/bin_size:],color="black",lw=2)
         else:
             line1 = param["lines"]["line"]["Nw1"]["Wavelength"]
             line2 = param["lines"]["line"]["Nw2"]["Wavelength"]
@@ -174,5 +163,5 @@ class Plotting:
 
         plt.minorticks_on()
         fig.tight_layout()
-        #fig.savefig("plots/"+window+".pdf")
+        fig.savefig("plots/"+window+".pdf")
         plt.show()

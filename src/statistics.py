@@ -18,8 +18,8 @@ class Stats:
         return np.sum(((X[0] - X[2]) / X[1])**2.)
 
     def chi2_lm(self, params, F, E, Const, ModelType, param):
-        c = m.Model(params, Const, ModelType, param)[0]
-        return (c - F)**2 / E**2
+        model = m.Model(params, Const, ModelType, param)[0]
+        return (model - F)**2 / E**2
     
     def Merit(self, X):
         ''' Given a Chi2 value

@@ -183,7 +183,7 @@ class Calc:
         
         else:
             # The 2015 v2 and 2016 data had multiple shifts.
-            wavelength0, flux0, err0    = self.ExtractData(fits_location+fits[0],part)
+            wavelength0, flux0, err0        = self.ExtractData(fits_location+fits[0],part)
             wavelength1, flux1, err1        = self.ExtractData(fits_location+fits[1],part)
             wavelength2, flux2, err2        = self.ExtractData(fits_location+fits[2],part)
             wavelength3, flux3, err3        = self.ExtractData(fits_location+fits[3],part)
@@ -228,27 +228,7 @@ class Calc:
         from PyAstronomy import pyasl
         return pyasl.rotBroad(W, F, eps, vsini)
 
-    def RVShift(self,rest_wavelength,RV):
-        # RV input has to be in km/s
-        c = 299792458
-        #rest_wavelength = rest_wavelength*(RV_BP*1.e3)/c + rest_wavelength # Convert to beta pic reference frame
-        #delta_wavelength = Wave-rest_wavelength
-        #RV = ((delta_wavelength/rest_wavelength)*c)/1.e3    # km/s
-        
-        delta_wavelength = rest_wavelength*RV*1.e3/c
-        #wave = delta_wavelength + rest_wavelength
-
-        return delta_wavelength
-
-    def NudgeSpec(self, Spec, units):
-        zeros   = np.zeros(abs(units))
-        if units > 0.:
-            Spec      = np.concatenate((zeros,Spec))[:-units]
-        else:
-            Spec      = np.concatenate((Spec,zeros))[abs(units):]
-        return Spec
-
-    def ShiftSpec(self, ref,spec,error,wave,start,stop,rest_wavelength):
+    def ShiftSpec(self, ref, spec, error, wave, start, stop, rest_wavelength):
         # This routine correlates the spectrum: spec
         # with the reference spectrum: ref
         ref_c   = ref[start:stop]   # Reference spectrum
@@ -256,14 +236,13 @@ class Calc:
         error_c = error[start:stop] # Error on spec to be shifted
         wave_c  = wave[start:stop]  # Wavelength of spec to be shifted
         
-        ref_c       = ref_c - np.mean(ref_c)
-        spec_c      = spec_c - np.mean(spec_c)
-        error_c       = error_c - np.mean(error_c)
+        ref_c   = ref_c - np.mean(ref_c)
+        spec_c  = spec_c - np.mean(spec_c)
+        error_c = error_c - np.mean(error_c)
 
-        c           = np.correlate(spec_c,ref_c,mode='full')
-
-        x           = np.arange(c.size)
-        c_max       = np.argmax(c)      # Maximum correlation
+        c       = np.correlate(spec_c,ref_c,mode='full')
+        x       = np.arange(c.size)
+        c_max   = np.argmax(c)      # Maximum correlation
         
         c_light = 299792458
 
