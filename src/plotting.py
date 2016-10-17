@@ -152,6 +152,10 @@ class Plotting:
             x = [1160.0,1160.5,1161.0,1161.5]
             labels = ['1160.0','1160.5','1161.0','1161.5']
             plt.xticks(x, labels)
+        if window == 'window3':
+            x = [1133.5,1134.0,1134.5,1135.0,1135.5]
+            labels = ['1133.5','1134.0','1134.5','1135.0','1135.5']
+            plt.xticks(x, labels)
 
         plt.xlabel(r'Wavelength (\AA)')
         plt.ylabel(r'Flux (erg/s/cm$^2$/\AA)')
