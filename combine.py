@@ -292,7 +292,7 @@ def main():
     kernel1         = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], w0_0)
     Fx_con          = np.convolve(RotBroadSpec, kernel1, mode='valid')[:-1]
 
-    np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_10_12.dat",np.column_stack((w0_0, F_tot/RotBroadSpec, F_tot_err)))
+    #np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_10_12.dat",np.column_stack((w0_0, F_tot/RotBroadSpec, F_tot_err)))
 
     fig = plt.figure(figsize=(8,5))
     #fig = plt.figure(figsize=(10,14))
