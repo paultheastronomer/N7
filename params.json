@@ -10,7 +10,7 @@
     }, 
 
 "files" : { 
-    "datafile": "NI_2016_10_12.txt",
+    "datafile": "div_by_UVBLUE_2016_10_12.dat",
     "stellar_spectrum1": "t08000g45p00k2_80.txt",
     "stellar_spectrum2": "t08000g45p00k2_130.txt"
     },
@@ -40,7 +40,14 @@
         "y1"        : 0.0e-14,
         "y2"        : 1.2e-14
         },
-    "bin"           : 2    
+    "window3"        : {
+        "name"      : "window3",
+        "x1"        : 1133.4,
+        "x2"        : 1135.9,
+        "y1"        : 0.0e-14,
+        "y2"        : 1.2e-14
+        },
+    "bin"           : 3    
     },
 
 "BetaPictoris" : { 
@@ -54,7 +61,7 @@
     "dofit" : "ynes",
     "lsf"  : "ttabulated",
     "windows"     : {
-        "number" : 2,
+        "number" : 3,
         "window1"     : {
             "order"     : 2,
             "start"     : 1198.75,
@@ -72,6 +79,15 @@
             "cut2"      : 1160.12,
             "cut3"      : 1160.92,
             "cut4"      : 1161.22
+        },
+        "window3"     : {
+            "order"     : 1,
+            "start"     : 1133.40,
+            "stop"      : 1135.90,
+            "cut1"      : 1134.00,
+            "cut2"      : 1134.70,
+            "cut3"      : 1134.85,
+            "cut4"      : 1135.30
         }
     },
     "ISM"    : {
@@ -125,8 +141,26 @@
             "Strength"      : 0.240e-05,
             "Gamma"         : 0.238e5,
             "Mass"          : 14.007
-        }
+        },
+        "Nm1"        : {
+            "Wavelength"    : 1134.1653,
+            "Strength"      : 0.152e-1,
+            "Gamma"         : 0.158e9,
+            "Mass"          : 14.007
+        },
+        "Nm2"        : {
+            "Wavelength"    : 1134.4149,
+            "Strength"      : 0.297e-01,
+            "Gamma"         : 0.154e9,
+            "Mass"          : 14.007
+        },
+        "Nm3"        : {
+            "Wavelength"    : 1134.9803,
+            "Strength"      : 0.435e-01,
+            "Gamma"         : 0.150e9,
+            "Mass"          : 14.007
         }
     }
 
+}
 }

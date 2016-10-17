@@ -210,6 +210,46 @@ class Model:
                       param["lines"]["line"]["Nw2"]["Gamma"]]) /(4.*np.pi)                
             
             N_col   = np.array([1.,1.,1.,1.,1.])*10**nh
+
+        if Nwindows == 3:
+            # [Hydrogen, Deuterium]   
+            w       = [param["lines"]["line"]["N1"]["Wavelength"],
+                      param["lines"]["line"]["N2"]["Wavelength"],
+                      param["lines"]["line"]["N3"]["Wavelength"],
+                      param["lines"]["line"]["Nw1"]["Wavelength"],
+                      param["lines"]["line"]["Nw2"]["Wavelength"],
+                      param["lines"]["line"]["Nm1"]["Wavelength"],
+                      param["lines"]["line"]["Nm2"]["Wavelength"],
+                      param["lines"]["line"]["Nm3"]["Wavelength"]]
+            
+            mass    = [param["lines"]["line"]["N1"]["Mass"],
+                      param["lines"]["line"]["N2"]["Mass"],
+                      param["lines"]["line"]["N3"]["Mass"],
+                      param["lines"]["line"]["Nw1"]["Mass"],
+                      param["lines"]["line"]["Nw2"]["Mass"],
+                      param["lines"]["line"]["Nm1"]["Mass"],
+                      param["lines"]["line"]["Nm2"]["Mass"],
+                      param["lines"]["line"]["Nm3"]["Mass"]]
+            
+            fosc    = [param["lines"]["line"]["N1"]["Strength"],
+                      param["lines"]["line"]["N2"]["Strength"],
+                      param["lines"]["line"]["N3"]["Strength"],
+                      param["lines"]["line"]["Nw1"]["Strength"],
+                      param["lines"]["line"]["Nw2"]["Strength"],
+                      param["lines"]["line"]["Nm1"]["Strength"],
+                      param["lines"]["line"]["Nm2"]["Strength"],
+                      param["lines"]["line"]["Nm3"]["Strength"]]
+            
+            delta   = np.array([param["lines"]["line"]["N1"]["Gamma"],
+                      param["lines"]["line"]["N2"]["Gamma"],
+                      param["lines"]["line"]["N3"]["Gamma"],
+                      param["lines"]["line"]["Nw1"]["Gamma"],
+                      param["lines"]["line"]["Nw2"]["Gamma"],
+                      param["lines"]["line"]["Nm1"]["Gamma"],
+                      param["lines"]["line"]["Nm2"]["Gamma"],
+                      param["lines"]["line"]["Nm3"]["Gamma"]]) /(4.*np.pi)                
+            
+            N_col   = np.array([1.,1.,1.,1.,1.,1.,1.,1.])*10**nh
         
         c           = 2.99793e14        # Speed of light
         k           = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
@@ -241,6 +281,8 @@ class Model:
             W1,F1,E1,l1,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
         if Nwindows == 2:
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
+        if Nwindows == 3:
+            W1,W2,W3,F1,F2,F3,E1,E2,E3,l1,l2,l3,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
 
         nh_ism, b_ism, nh_bp, b_bp, nh_X, v_X, b_X     = params
 
@@ -319,12 +361,91 @@ class Model:
             f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
 
             unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
+
+        if Nwindows == 3:
+
+            if param["fit"]["lsf"] == 'tabulated':
+                kernel2      =   self.LSF(param["lines"]["line"]["Nw1"]["Wavelength"], W2)
+            else:
+                kernel2      =   self.K(W2, l2, sigma_kernel)
+
+            kernel2      =   self.K(W2, l2, sigma_kernel)
+
+            # Calculates the ISM absorption
+            
+            abs_ism2     =   self.absorption(l2,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
+            abs_bp2      =   self.absorption(l2,v_bp,nh_bp,b_bp,T_bp,param,Nwindows)
+            abs_X2       =   self.absorption(l2,v_X,nh_X,b_X,T_X,param,Nwindows)
+            
+            # Continuum line
+            f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
+            
+            # Stellar spectral profile, as seen from Earth
+            # after absorption by the ISM and BP CS disk.
+            # Profile has been convolved with HST LSF
+            #    -  in (erg cm-2 s-1 A-1)
+            
+            f_abs_con2   =   np.convolve(f2*abs_ism2*abs_bp2*abs_X2, kernel2, mode='same')
+
+            # Absorption by ISM
+            f_abs_ism2   =   np.convolve(f2*abs_ism2, kernel2, mode='same')        
+
+            # Absorption by beta Pictoris  
+            f_abs_bp2    =   np.convolve(f2*abs_bp2, kernel2, mode='same')
+
+            # Absorption by exocomets  
+            f_abs_X2     =    np.convolve(f2*abs_X2, kernel2, mode='same')
+
+            # Interpolation on COS wavelengths, relative to the star
+            f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
+
+            unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
+
+            if param["fit"]["lsf"] == 'tabulated':
+                kernel3      =   self.LSF(param["lines"]["line"]["Nm1"]["Wavelength"], W2)
+            else:
+                kernel3      =   self.K(W3, l3, sigma_kernel)
+
+            kernel3      =   self.K(W3, l3, sigma_kernel)
+
+            # Calculates the ISM absorption
+            
+            abs_ism3     =   self.absorption(l3,v_ism,nh_ism,b_ism,T_ism,param,Nwindows)
+            abs_bp3      =   self.absorption(l3,v_bp,nh_bp,b_bp,T_bp,param,Nwindows)
+            abs_X3       =   self.absorption(l3,v_X,nh_X,b_X,T_X,param,Nwindows)
+            
+            # Continuum line
+            f3           =   self.Continuum(param, param["display"]["window3"]["name"], l3, W3, F3, E3)
+            
+            # Stellar spectral profile, as seen from Earth
+            # after absorption by the ISM and BP CS disk.
+            # Profile has been convolved with HST LSF
+            #    -  in (erg cm-2 s-1 A-1)
+            
+            f_abs_con3   =   np.convolve(f3*abs_ism3*abs_bp3*abs_X3, kernel3, mode='same')
+
+            # Absorption by ISM
+            f_abs_ism3   =   np.convolve(f3*abs_ism3, kernel3, mode='same')        
+
+            # Absorption by beta Pictoris  
+            f_abs_bp3    =   np.convolve(f3*abs_bp3, kernel3, mode='same')
+
+            # Absorption by exocomets  
+            f_abs_X3     =    np.convolve(f3*abs_X3, kernel3, mode='same')
+
+            # Interpolation on COS wavelengths, relative to the star
+            f_abs_int3   =   np.interp(W3,l3,f_abs_con3)
+
+            unconvolved3 =  f3*abs_ism3*abs_bp3*abs_X3
             
         if Nwindows == 1:
             return f_abs_int1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1
         
         if Nwindows == 2:
             return f_abs_int1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2
+
+        if Nwindows == 3:
+            return f_abs_int1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_abs_int2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2, f_abs_int3, f_abs_con3, f_abs_ism3, f_abs_bp3, f_abs_X3, unconvolved3
 
     def Model(self, params, Const, ModelType, param):
         
@@ -338,9 +459,14 @@ class Model:
         if Nwindows == 1:
             # Fixed parameters
             W1,F1,E1,l1,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X  = Const
-            return self.Absorptions(Const, params, param, sigma_kernel, Nwindows)      
+            return self.Absorptions(Const, params, param, sigma_kernel, Nwindows)
 
         if Nwindows == 2:
             # Fixed parameters
             W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X   = Const
-            return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows) 
+            return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows)
+
+        if Nwindows == 3:
+            # Fixed parameters
+            W1,W2,W3,F1,F2,F3,E1,E2,E3,l1,l2,l3,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X   = Const
+            return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows)

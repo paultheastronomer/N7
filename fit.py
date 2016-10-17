@@ -54,7 +54,7 @@ def main():
                       ,unpack=True)
 
     # Need to change later
-    #F = F*1e-7
+    F = F*1e-7
 
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
@@ -64,6 +64,12 @@ def main():
         W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
         W2, F2, E2, v2, l2  = c.Window(param,W,F,E,"window2")
         ConstA              = [W1,W2,F1,F2,E1,E2,l1,l2]
+
+    if Nwindows == 3:
+        W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
+        W2, F2, E2, v2, l2  = c.Window(param,W,F,E,"window2")
+        W3, F3, E3, v3, l3  = c.Window(param,W,F,E,"window3")
+        ConstA              = [W1,W2,W3,F1,F2,F3,E1,E2,E3,l1,l2,l3]
 
     # The parameters listed in ConstB are not dependant on the number of windows used.
     # ConstA is.
@@ -116,6 +122,11 @@ def main():
         f_fit1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2 = m.Model(P,Const,ModelType,param)
         p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
         p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
+    if Nwindows == 3:
+        f_fit1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1, f_fit2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2, f_fit3, f_abs_con3, f_abs_ism3, f_abs_bp3, f_abs_X3, unconvolved3 = m.Model(P,Const,ModelType,param)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con1, f_abs_ism1, f_abs_bp1, f_abs_X1, unconvolved1) 
+        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con2, f_abs_ism2, f_abs_bp2, f_abs_X2, unconvolved2)
+        p.BasicPlot(param, param["display"]["window3"]["name"], W, F, E, l3, f_abs_con3, f_abs_ism3, f_abs_bp3, f_abs_X3, unconvolved3)
 
     # Compute the goodness of fit.
     #X = [F1, E1, f_fit1]
