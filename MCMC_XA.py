@@ -88,7 +88,7 @@ def main():
 
     chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
     
-    outfile = 'chains/chain_V3_'+sys.argv[1]
+    outfile = 'chains/chain_U3_'+sys.argv[1]
     np.savez(outfile, nh_ISM = chain[:,0], b_ISM = chain[:,1], nh_CS = chain[:,2], b_CS = chain[:,3], nh_X = chain[:,4], RV_X = chain[:,5], b_X = chain[:,6])
 
     Pout = chain[moves,:]

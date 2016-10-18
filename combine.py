@@ -73,12 +73,14 @@ def main():
         s1 = 6100
         s2  = 11400  
     else:
-        #s1 = 10000
+        #s1 = 10000     # Original region
         #s2  = 13473
         #s1 = 12550  # Region around a SII line
         #s2 = 12750
         s1 = 7200  # Region just left of the NI line
         s2 = 7400
+        #s1 = 4800
+        #s2 = 5020
 
     # Creates a figure showing the quiet regions of the spectra.
     p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
@@ -102,7 +104,7 @@ def main():
     print "\n\nShifting 30 Jan 2016 observations:"
     W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3    = c.ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,Line)
 
-    '''
+    #'''
     # Save the shifted from each visit into .dat file
     np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
     np.savetxt(param["directories"]["workdir"]+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
@@ -246,8 +248,8 @@ def main():
     W_bin, F4_bin, E4_bin       =   c.BinData(w0_0,F4,E4,bin_size)
 
     # Save the combined spectrum
-    #np.savetxt(param["directories"]["workdir"]+"NI_2016_10_12.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
-    '''
+    np.savetxt(param["directories"]["workdir"]+"NI_2016_10_17_test_region.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
+    #'''
     
     # Temp code
     w0_0, F_tot, F_tot_err = np.genfromtxt(param["directories"]["workdir"]+'NI_2016_10_12.txt',unpack=True)

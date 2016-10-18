@@ -48,10 +48,10 @@ class Plotting:
         #'''            
         ax2 = plt.subplot(212, sharex=ax1)
         # Plot of the individual spectra
-        plt.step(w_bin,y0_bin,lw=1.2,color="#FF281C",label='2014')
-        plt.step(w_bin,y1_bin,lw=1.2,color="#FF9303",label='2015v1')
         plt.step(w_bin,y2_bin,lw=1.2,color="#0386FF",label='2015v2')
-        plt.step(w_bin,y3_bin,lw=1.2,color="#00B233",label='2016v3') 
+        plt.step(w_bin,y3_bin,lw=1.2,color="#00B233",label='2016v3')
+        plt.step(w_bin,y1_bin,lw=1.2,color="#FF9303",label='2015v1')
+        plt.step(w_bin,y0_bin,lw=1.2,color="#FF281C",label='2014')
         plt.plot([w0_0[s1],w0_0[s1]],[0,3],'-k')
         plt.plot([w0_0[s2],w0_0[s2]],[0,3],'-k')
         plt.xlim(x_lim1,x_lim2)
