@@ -83,7 +83,7 @@ def main():
         #s2 = 5020
 
     # Creates a figure showing the quiet regions of the spectra.
-    p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
+    #p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
     #sys.exit()
 
     # --------------------------------------------------------------------------
@@ -104,12 +104,12 @@ def main():
     print "\n\nShifting 30 Jan 2016 observations:"
     W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3    = c.ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,Line)
 
-    #'''
+    '''
     # Save the shifted from each visit into .dat file
-    np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
-    np.savetxt(param["directories"]["workdir"]+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
-    np.savetxt(param["directories"]["workdir"]+"V3.dat",np.column_stack((W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2)))
-    np.savetxt(param["directories"]["workdir"]+"V4.dat",np.column_stack((W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3)))
+    #np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
+    #np.savetxt(param["directories"]["workdir"]+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
+    #np.savetxt(param["directories"]["workdir"]+"V3.dat",np.column_stack((W, F0_2, E0_2, F1_2, E1_2, F2_2, E2_2, F3_2, E3_2, AG2, AG2err, F_ave_w_2, E_ave_w_2)))
+    #np.savetxt(param["directories"]["workdir"]+"V4.dat",np.column_stack((W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3)))
 
     # For a better naming convention we will rename the following variables
     F0_0    = f0_0
@@ -249,7 +249,7 @@ def main():
 
     # Save the combined spectrum
     np.savetxt(param["directories"]["workdir"]+"NI_2016_10_17_test_region.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
-    #'''
+    '''
     
     # Temp code
     w0_0, F_tot, F_tot_err = np.genfromtxt(param["directories"]["workdir"]+'NI_2016_10_12.txt',unpack=True)
@@ -294,7 +294,17 @@ def main():
     kernel1         = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], w0_0)
     Fx_con          = np.convolve(RotBroadSpec, kernel1, mode='valid')[:-1]
 
-    #np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_10_12.dat",np.column_stack((w0_0, F_tot/RotBroadSpec, F_tot_err)))
+    synth_norm_region = []
+    norm_region       = []
+    for i in range(len(w0_0)):
+        if 1195.5 < w0_0[i] < 1197.0:
+            norm_region.append(F_tot[i])
+            synth_norm_region.append(RotBroadSpec[i])
+    norm_region         = np.array(norm_region)
+    synth_norm_region   = np.array(synth_norm_region)
+    flux_ratio          = np.median(norm_region)/np.median(synth_norm_region)
+ 
+    np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_10_23.dat",np.column_stack((w0_0, (F_tot/(RotBroadSpec*flux_ratio)), F_tot_err/1.5e-14)))
 
     fig = plt.figure(figsize=(8,5))
     #fig = plt.figure(figsize=(10,14))
@@ -312,7 +322,7 @@ def main():
     plt.step(w0_0,AG1,lw=1.2,color="#FF9303",label='2015v1')
     plt.step(w0_0,AG2,lw=1.2,color="#0386FF",label='2015v2')
     plt.step(w0_0,AG3,lw=1.2,color="#00B233",label='2016v3')
-    plt.plot(w0_0,RotBroadSpec*1e-7,color='red',lw=2)
+    plt.plot(w0_0,RotBroadSpec*flux_ratio,color='red',lw=2)
     #plt.step(w0_0, 0.85e3*(F_tot/RotBroadSpec),color='black',lw=1.3)
     #plt.xlim(1195,1204)
     #plt.ylim(0,2e-14)
