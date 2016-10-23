@@ -54,7 +54,7 @@ def main():
                       ,unpack=True)
 
     # Need to change later
-    F = F*8.e-8
+    #F = F*8.e-8
 
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")

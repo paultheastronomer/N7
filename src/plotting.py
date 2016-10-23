@@ -162,5 +162,5 @@ class Plotting:
 
         plt.minorticks_on()
         fig.tight_layout()
-        fig.savefig("plots/"+window+".pdf")
+        #fig.savefig("plots/"+window+"_168.pdf")
         plt.show()

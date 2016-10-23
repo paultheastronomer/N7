@@ -10,7 +10,7 @@
     }, 
 
 "files" : { 
-    "datafile": "div_by_UVBLUE_2016_10_12.dat",
+    "datafile": "div_by_UVBLUE_2016_10_23.dat",
     "stellar_spectrum1": "t08000g45p00k2_80.txt",
     "stellar_spectrum2": "t08000g45p00k2_130.txt"
     },
@@ -31,21 +31,21 @@
         "x1"        : 1198.77,
         "x2"        : 1202.18,
         "y1"        : 0.0,
-        "y2"        : 1.5e-14
+        "y2"        : 1.4
         },
     "window2"        : {
         "name"      : "window2",
         "x1"        : 1159.6,
         "x2"        : 1161.6,
-        "y1"        : 0.0e-14,
-        "y2"        : 1.2e-14
+        "y1"        : 0.0,
+        "y2"        : 1.4
         },
     "window3"        : {
         "name"      : "window3",
         "x1"        : 1133.4,
         "x2"        : 1135.9,
-        "y1"        : 0.0e-14,
-        "y2"        : 1.7e-14
+        "y1"        : 0.0,
+        "y2"        : 1.4
         },
     "bin"           : 3    
     },
@@ -58,7 +58,7 @@
     },
 
 "fit" : {
-    "dofit" : "ynes",
+    "dofit" : "yes",
     "lsf"  : "ttabulated",
     "windows"     : {
         "number" : 3,
@@ -91,19 +91,19 @@
         }
     },
     "ISM"    : {
-        "log(H)"    : 11.28,
+        "log(H)"    : 14.6,
         "RV"        : 10.00,
         "T"         : 6000,
         "b"         : 3.00
     },
     "disk" : {    
-        "log(H)"    : 17.27,
+        "log(H)"    : 16.00,
         "RV"        : 20.50,
         "T"         : 10.0,
         "b"         : 3.00
     },
     "exocomet" : {    
-        "log(H)"    : 16.39,
+        "log(H)"    : 16.00,
         "RV"        : 45.79,
         "T"         : 10.0,
         "b"         : 3.00
