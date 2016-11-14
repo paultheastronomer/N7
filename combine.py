@@ -77,10 +77,12 @@ def main():
         #s2  = 13473
         #s1 = 12550  # Region around a SII line
         #s2 = 12750
-        s1 = 7200  # Region just left of the NI line
-        s2 = 7400
+        #s1 = 7200  # Region just left of the NI line
+        #s2 = 7400
         #s1 = 4800
         #s2 = 5020
+        s1 = 7205#7450#7205  # Region including NI triplet
+        s2 = 7647
 
     # Creates a figure showing the quiet regions of the spectra.
     #p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
@@ -104,7 +106,7 @@ def main():
     print "\n\nShifting 30 Jan 2016 observations:"
     W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3    = c.ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,Line)
 
-    '''
+    #'''
     # Save the shifted from each visit into .dat file
     #np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
     #np.savetxt(param["directories"]["workdir"]+"V2.dat",np.column_stack((W, F0_1, E0_1, F1_1, E1_1, F2_1, E2_1, AG1, AG1err, F_ave_w_1, E_ave_w_1)))
@@ -248,11 +250,12 @@ def main():
     W_bin, F4_bin, E4_bin       =   c.BinData(w0_0,F4,E4,bin_size)
 
     # Save the combined spectrum
-    np.savetxt(param["directories"]["workdir"]+"NI_2016_10_17_test_region.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
-    '''
+    np.savetxt(param["directories"]["workdir"]+"NI_2016_11_07.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
+    sys.exit()
+    #'''
     
     # Temp code
-    w0_0, F_tot, F_tot_err = np.genfromtxt(param["directories"]["workdir"]+'NI_2016_10_12.txt',unpack=True)
+    #w0_0, F_tot, F_tot_err = np.genfromtxt(param["directories"]["workdir"]+'NI_2016_10_12.txt',unpack=True)
 
     #p.CombinedPlot(param, "window1", W, F_tot, W_bin, F2_bin, F3_bin, F4_bin)
 
@@ -297,14 +300,15 @@ def main():
     synth_norm_region = []
     norm_region       = []
     for i in range(len(w0_0)):
-        if 1195.5 < w0_0[i] < 1197.0:
+        if 1198.5 < w0_0[i] < 1199.4:
             norm_region.append(F_tot[i])
             synth_norm_region.append(RotBroadSpec[i])
     norm_region         = np.array(norm_region)
     synth_norm_region   = np.array(synth_norm_region)
-    flux_ratio          = np.median(norm_region)/np.median(synth_norm_region)
+    median_synth_region = np.median(synth_norm_region)
+    flux_ratio          = np.median(norm_region)/median_synth_region
  
-    np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_10_23.dat",np.column_stack((w0_0, (F_tot/(RotBroadSpec*flux_ratio)), F_tot_err/1.5e-14)))
+    #np.savetxt(param["directories"]["workdir"]+"div_by_UVBLUE_2016_11_02.dat",np.column_stack((w0_0, F_tot/(RotBroadSpec/median_synth_region), F_tot_err)))
 
     fig = plt.figure(figsize=(8,5))
     #fig = plt.figure(figsize=(10,14))
@@ -319,13 +323,21 @@ def main():
     plt.rcParams['text.latex.unicode'] = True
 
     plt.step(w0_0, F_tot,color='black',lw=1.3)
-    plt.step(w0_0,AG1,lw=1.2,color="#FF9303",label='2015v1')
-    plt.step(w0_0,AG2,lw=1.2,color="#0386FF",label='2015v2')
-    plt.step(w0_0,AG3,lw=1.2,color="#00B233",label='2016v3')
+    #plt.step(w0_0,AG1,lw=1.2,color="#FF9303",label='2015v1')
+    #plt.step(w0_0,AG2,lw=1.2,color="#0386FF",label='2015v2')
+    #plt.step(w0_0,AG3,lw=1.2,color="#00B233",label='2016v3')
+    
+    plt.step(w0_0,F_tot/(RotBroadSpec/median_synth_region),color='blue',lw=1)
     plt.plot(w0_0,RotBroadSpec*flux_ratio,color='red',lw=2)
     #plt.step(w0_0, 0.85e3*(F_tot/RotBroadSpec),color='black',lw=1.3)
-    #plt.xlim(1195,1204)
-    #plt.ylim(0,2e-14)
+    plt.xlim(1198.5,1201.5)
+    plt.ylim(0,2e-14)
+    fig.tight_layout()
+    x = [1199,1199.5,1200,1200.5,1201,1201.5,1202]
+    labels = ['1199.0','1199.5','1200.0','1200.5','1201','1201.5','1202.0']
+    plt.xticks(x, labels)
+    plt.xlabel(r'Wavelength [\AA]')
+    #plt.savefig('spectra_comparison.pdf', bbox_inches='tight', pad_inches=0.1,dpi=300)
     plt.show()
 
 if __name__ == '__main__':
