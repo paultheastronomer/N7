@@ -10,7 +10,7 @@
     }, 
 
 "files" : { 
-    "datafile": "div_by_UVBLUE_2016_10_23.dat",
+    "datafile": "C20161107.dat",
     "stellar_spectrum1": "t08000g45p00k2_80.txt",
     "stellar_spectrum2": "t08000g45p00k2_130.txt"
     },
@@ -31,7 +31,7 @@
         "x1"        : 1198.77,
         "x2"        : 1202.18,
         "y1"        : 0.0,
-        "y2"        : 1.4
+        "y2"        : 1.6e-14
         },
     "window2"        : {
         "name"      : "window2",
@@ -45,9 +45,9 @@
         "x1"        : 1133.4,
         "x2"        : 1135.9,
         "y1"        : 0.0,
-        "y2"        : 1.4
+        "y2"        : 1.0e-14
         },
-    "bin"           : 3    
+    "bin"           : 1    
     },
 
 "BetaPictoris" : { 
@@ -58,10 +58,10 @@
     },
 
 "fit" : {
-    "dofit" : "yes",
+    "dofit" : "yyes",
     "lsf"  : "ttabulated",
     "windows"     : {
-        "number" : 3,
+        "number" : 1,
         "window1"     : {
             "order"     : 2,
             "start"     : 1198.75,
@@ -91,22 +91,22 @@
         }
     },
     "ISM"    : {
-        "log(H)"    : 14.6,
+        "log(H)"    : 13.55,
         "RV"        : 10.00,
-        "T"         : 6000,
-        "b"         : 3.00
+        "T"         : 10,
+        "xi"        : 1.00
     },
     "disk" : {    
-        "log(H)"    : 16.00,
+        "log(H)"    : 16.96,
         "RV"        : 20.50,
         "T"         : 10.0,
-        "b"         : 3.00
+        "xi"         : 1.30
     },
     "exocomet" : {    
-        "log(H)"    : 16.00,
-        "RV"        : 45.79,
+        "log(H)"    : 16.24,
+        "RV"        : 41.1,
         "T"         : 10.0,
-        "b"         : 3.00
+        "xi"         : 1.00
     }    
     },
 

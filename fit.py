@@ -53,9 +53,6 @@ def main():
     W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"]
                       ,unpack=True)
 
-    # Need to change later
-    #F = F*8.e-8
-
     if Nwindows == 1:
         W1, F1, E1, v1, l1  = c.Window(param,W,F,E,"window1")
         ConstA              = [W1,F1,E1,l1]
@@ -92,16 +89,16 @@ def main():
     
                 # Free ISM parameters
     Par     =   [param["fit"]["ISM"]["log(H)"],
-                param["fit"]["ISM"]["b"],                
+                param["fit"]["ISM"]["xi"],                
                 
                 # Free CS parameters
                 param["fit"]["disk"]["log(H)"],
-                param["fit"]["disk"]["b"],
+                param["fit"]["disk"]["xi"],
                 
                 # Free exocomet parameters
                 param["fit"]["exocomet"]["log(H)"],
                 param["fit"]["exocomet"]["RV"],
-                param["fit"]["exocomet"]["b"]]
+                param["fit"]["exocomet"]["xi"]]
  
     if param["fit"]["dofit"] == "yes":
         P =  c.FindBestParams(Par, F1, E1, Const, ModelType, param)
