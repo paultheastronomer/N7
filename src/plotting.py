@@ -164,3 +164,109 @@ class Plotting:
         fig.tight_layout()
         #fig.savefig("plots/"+window+"_168.pdf")
         plt.show()
+
+    def OwensPlot(self, param, window, W, NoPSF, F, E, Continuum, Fit, NI_1, SIII_1, NI_2, SIII_2, NI_3, SIII_3):
+
+        fig = self.FigParams()
+        
+        x1  = param["display"][window]["x1"]
+        x2  = param["display"][window]["x2"]
+        y1  = param["display"][window]["y1"]
+        y2  = param["display"][window]["y2"]
+
+
+        if param["display"]["bin"] > 1:
+            bin_size = param["display"]["bin"]
+            Wb, Fb, Eb      = c.BinData(W,F,E,bin_size)
+            #plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
+            plt.step(Wb,Fb,color="black",lw=1.2)
+        else:
+            line1 = param["lines"]["line"]["Nw1"]["Wavelength"]
+            line2 = param["lines"]["line"]["Nw2"]["Wavelength"]
+            plt.plot([line1,line1],[0.2e-14,0.3e-14],color='black')
+            plt.plot([line2,line2],[0.2e-14,0.3e-14],color='black')
+            #plt.errorbar(W,np.ones(len(W))*0.2e-14,yerr=E)
+            plt.step(W,F,color="black",lw=1.2)
+
+        plt.plot(W,NoPSF,color="cyan")
+        plt.plot(W,SIII_3,color="#FF9303",lw=2)
+        plt.plot(W,SIII_1,color="#0386FF",lw=2)
+        plt.plot(W,SIII_2,color="#00B233",lw=2)   
+        plt.plot(W,NI_3,color="#FF9303",lw=2)
+        plt.plot(W,NI_1,color="#0386FF",lw=2)
+        plt.plot(W,NI_2,color="#00B233",lw=2)   
+        plt.plot(W,Fit,lw=2,color='#FF281C',label=r'Best fit')
+
+        plt.xlim(x1,x2)
+        plt.ylim(y1,y2)
+
+        if window == 'window1':
+            x = [1199,1199.5,1200,1200.5,1201,1201.5,1202]
+            labels = ['1199.0','1199.5','1200.0','1200.5','1201','1201.5','1202.0']
+            plt.xticks(x, labels)
+        if window == 'window2':
+            x = [1160.0,1160.5,1161.0,1161.5]
+            labels = ['1160.0','1160.5','1161.0','1161.5']
+            plt.xticks(x, labels)
+        if window == 'window3':
+            x = [1133.5,1134.0,1134.5,1135.0,1135.5]
+            labels = ['1133.5','1134.0','1134.5','1135.0','1135.5']
+            plt.xticks(x, labels)
+
+        plt.xlabel(r'Wavelength (\AA)')
+        plt.ylabel(r'Flux (erg/s/cm$^2$/\AA)')
+
+        plt.minorticks_on()
+        fig.tight_layout()
+        fig.savefig("plots/"+window+"_NI_diff_align.pdf")
+        plt.show()
+
+    def CompareSpec(self, param, window, W, F1, F2):
+
+        fig = self.FigParams()
+        
+        x1  = param["display"][window]["x1"]
+        x2  = param["display"][window]["x2"]
+        y1  = param["display"][window]["y1"]
+        y2  = param["display"][window]["y2"]
+
+
+        if param["display"]["bin"] > 1:
+            bin_size = param["display"]["bin"]
+            Wb, F1b, Db      = c.BinData(W,F1,F1,bin_size)
+            Wb, F2b, Db      = c.BinData(W,F2,F2,bin_size)
+            #plt.errorbar(Wb,np.ones(len(Wb))*2e-14,yerr=Eb)
+            plt.step(Wb,F1b,color="black",lw=1.2)
+            plt.step(Wb,F2b,color="red",lw=1.2)
+        else:
+            line1 = param["lines"]["line"]["Nw1"]["Wavelength"]
+            line2 = param["lines"]["line"]["Nw2"]["Wavelength"]
+            plt.plot([line1,line1],[0.2e-14,0.3e-14],color='black')
+            plt.plot([line2,line2],[0.2e-14,0.3e-14],color='black')
+            #plt.errorbar(W,np.ones(len(W))*0.2e-14,yerr=E)
+            plt.step(W,F1,color="black",lw=1.2)
+            plt.step(W,F2,color="red",lw=1.2)
+
+        plt.xlim(x1,x2)
+        plt.ylim(y1,y2)
+
+        if window == 'window1':
+            x = [1199,1199.5,1200,1200.5,1201,1201.5,1202]
+            labels = ['1199.0','1199.5','1200.0','1200.5','1201','1201.5','1202.0']
+            plt.xticks(x, labels)
+        if window == 'window2':
+            x = [1160.0,1160.5,1161.0,1161.5]
+            labels = ['1160.0','1160.5','1161.0','1161.5']
+            plt.xticks(x, labels)
+        if window == 'window3':
+            x = [1133.5,1134.0,1134.5,1135.0,1135.5]
+            labels = ['1133.5','1134.0','1134.5','1135.0','1135.5']
+            plt.xticks(x, labels)
+
+        plt.xlabel(r'Wavelength (\AA)')
+        plt.ylabel(r'Flux (erg/s/cm$^2$/\AA)')
+
+        plt.minorticks_on()
+        fig.tight_layout()
+        fig.savefig("plots/"+window+"_comparison.pdf")
+        plt.show()
