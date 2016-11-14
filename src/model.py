@@ -161,7 +161,7 @@ class Model:
         
         return f        
 
-    def absorption(self, l,v_bp,nh,vturb,T,param,Nwindows):
+    def absorption(self, l,v_comp,nh,vturb,T,param,Nwindows):
         
         if Nwindows == 1:
             # [Hydrogen, Deuterium]   
@@ -251,28 +251,30 @@ class Model:
             
             N_col   = np.array([1.,1.,1.,1.,1.,1.,1.,1.])*10**nh
         
-        c           = 2.99793e14        # Speed of light
+        c_light     = 2.99793e14        # Speed of light
         k           = 1.38064852e-23    # Boltzmann constant in J/K = m^2*kg/(s^2*K) in SI base units
         u           = 1.660539040e-27   # Atomic mass unit (Dalton) in kg
         absorption  = np.ones(len(l))
 
         for i in range(len(w)):
-            b_wid   = np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
+            #b_wid   = np.sqrt((T/mass[i]) + ((vturb/np.sqrt(2*k/u)/1e3)**2)) # non-thermal + thermal broadening
+            b_wid   = np.sqrt((T/mass[i]) + ((vturb/0.12895223)**2))
             b       = 4.30136955e-3*b_wid
-            dnud    = b*c/w[i]
-            xc      = l/(1.+v_bp*1.e9/c)
-            v       = 1.e4*abs(((c/xc)-(c/w[i]))/dnud)
+            dnud    = b*c_light/w[i]
+            xc      = l/(1.+v_comp*1.e9/c_light)    # In Angstrom
+            v       = 1.e4*abs(((c_light/xc)-(c_light/w[i]))/dnud)
             tv      = 1.16117705e-14*N_col[i]*w[i]*fosc[i]/b_wid
             a       = delta[i]/dnud
             hav     = tv*self.voigt_wofz(a,v)
             
-            # To avoid underflow which occurs when you have exp(small negative number)
-
+            # To avoid calculating super tiny numbers
             for j in range(len(hav)):
-                if hav[j] < 20.:      
+                
+                if hav[j] < 50:      
                     absorption[j]  =   absorption[j]*np.exp(-hav[j])       
                 else:
-                    absorption[j]  =   0.      
+                    absorption[j]  =   0.
+
         return absorption
 
     def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
@@ -355,12 +357,12 @@ class Model:
             f_abs_bp2    =   np.convolve(f2*abs_bp2, kernel2, mode='same')
 
             # Absorption by exocomets  
-            f_abs_X2     =    np.convolve(f2*abs_X2, kernel2, mode='same')
+            f_abs_X2     =   np.convolve(f2*abs_X2, kernel2, mode='same')
 
             # Interpolation on COS wavelengths, relative to the star
             f_abs_int2   =   np.interp(W2,l2,f_abs_con2)
 
-            unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
+            unconvolved2 =   f2*abs_ism2*abs_bp2*abs_X2
 
         if Nwindows == 3:
 
