@@ -58,7 +58,7 @@
     },
 
 "fit" : {
-    "dofit" : "yyes",
+    "dofit" : "yes",
     "lsf"  : "ttabulated",
     "windows"     : {
         "number" : 1,
@@ -91,19 +91,22 @@
         }
     },
     "ISM"    : {
-        "log(H)"    : 13.55,
+        "log(N)"    : 13.55,
+        "log(S)"    : 0.00,
         "RV"        : 10.00,
         "T"         : 10,
         "xi"        : 1.00
     },
-    "disk" : {    
-        "log(H)"    : 16.96,
+    "CS" : {    
+        "log(N)"    : 16.96,
+        "log(S)"    : 14.21,
         "RV"        : 20.50,
         "T"         : 10.0,
         "xi"         : 1.30
     },
     "exocomet" : {    
-        "log(H)"    : 16.24,
+        "log(N)"    : 16.24,
+        "log(S)"    : 14.18,
         "RV"        : 41.1,
         "T"         : 10.0,
         "xi"         : 1.00
@@ -159,8 +162,14 @@
             "Strength"      : 0.435e-01,
             "Gamma"         : 0.150e9,
             "Mass"          : 14.007
+        },
+        "SIII**"        : {
+            "Wavelength"    : 1200.9659,
+            "Strength"      : 0.193e-01,
+            "Gamma"         : 0.637e+08,
+            "Mass"          : 32
         }
     }
 
 }
-}
+} 
