@@ -297,11 +297,11 @@ class Model:
     def Absorptions(self,Const, params, param, sigma_kernel, Nwindows):
         
         if Nwindows == 1:
-            W1, F1, E1, l1, BetaPicRV, v_ISM, T_ISM, v_CS, T_CS, T_X = Const
+            W1 ,F1, E1, l1, BetaPicRV, v_ISM, v_CS = Const
         if Nwindows == 2:
-            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
+            W1, W2, F1, F2, E1, E2, l1, l2, BetaPicRV, v_ISM, v_CS = Const
         if Nwindows == 3:
-            W1,W2,W3,F1,F2,F3,E1,E2,E3,l1,l2,l3,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X = Const
+            W1, W2, W3, F1, F2, F3, E1, E2, E3,l1,l2,l3, BetaPicRV, v_ISM, v_CS = Const
 
         nN_ISM, nS_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, T_CS, xi_CS, nN_X, nS_X, T_X, xi_X, v_X     = params
 
@@ -309,13 +309,11 @@ class Model:
             kernel1      =   self.LSF(param["lines"]["line"]["N1"]["Wavelength"], W1)
         else:
             kernel1      =   self.K(W1, l1, sigma_kernel)
-
         
         # Calculates the ISM absorption
-        abs_ism1     =   self.absorption(l1,v_ISM,nN_ISM,nS_ISM, xi_ISM,T_ISM,param,Nwindows)
-        abs_bp1      =   self.absorption(l1,v_CS,nN_CS,nS_CS,xi_CS,T_CS,param,Nwindows)
-        abs_X1       =   self.absorption(l1,v_X,nN_X,nS_X,xi_X,T_X,param,Nwindows)
-        
+        abs_ism1     =   self.absorption(l1, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
+        abs_bp1      =   self.absorption(l1, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
+        abs_X1       =   self.absorption(l1, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)
         
         # Continuum line
         f1           =   self.Continuum(param, param["display"]["window1"]["name"], l1, W1, F1, E1)
@@ -351,11 +349,10 @@ class Model:
 
             kernel2      =   self.K(W2, l2, sigma_kernel)
 
-            # Calculates the ISM absorption
-            
-            abs_ism2     =   self.absorption(l2,v_ism,nN_ism,b_ism,T_ism,param,Nwindows)
-            abs_bp2      =   self.absorption(l2,v_bp,nN_bp,b_bp,T_bp,param,Nwindows)
-            abs_X2       =   self.absorption(l2,v_X,nN_X,b_X,T_X,param,Nwindows)
+            # Calculates the absorptions            
+            abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
+            abs_bp2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
+            abs_X2       =   self.absorption(l2, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)
             
             # Continuum line
             f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
@@ -390,11 +387,10 @@ class Model:
 
             kernel2      =   self.K(W2, l2, sigma_kernel)
 
-            # Calculates the ISM absorption
-            
-            abs_ism2     =   self.absorption(l2,v_ism,nN_ism,b_ism,T_ism,param,Nwindows)
-            abs_bp2      =   self.absorption(l2,v_bp,nN_bp,b_bp,T_bp,param,Nwindows)
-            abs_X2       =   self.absorption(l2,v_X,nN_X,b_X,T_X,param,Nwindows)
+            # Calculates the absorptions            
+            abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
+            abs_bp2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
+            abs_X2       =   self.absorption(l2, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)
             
             # Continuum line
             f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
@@ -427,11 +423,10 @@ class Model:
 
             kernel3      =   self.K(W3, l3, sigma_kernel)
 
-            # Calculates the ISM absorption
-            
-            abs_ism3     =   self.absorption(l3,v_ism,nN_ism,b_ism,T_ism,param,Nwindows)
-            abs_bp3      =   self.absorption(l3,v_bp,nN_bp,b_bp,T_bp,param,Nwindows)
-            abs_X3       =   self.absorption(l3,v_X,nN_X,b_X,T_X,param,Nwindows)
+            # Calculates the absorptions
+            abs_ism3     =   self.absorption(l3, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
+            abs_bp3      =   self.absorption(l3, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
+            abs_X3       =   self.absorption(l3, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)            
             
             # Continuum line
             f3           =   self.Continuum(param, param["display"]["window3"]["name"], l3, W3, F3, E3)
@@ -477,15 +472,15 @@ class Model:
 
         if Nwindows == 1:
             # Fixed parameters
-            W1,F1,E1,l1,BetaPicRV,v_ISM, T_ISM, v_CS, T_CS, T_X = Const
+            W1, F1, E1, l1, BetaPicRV, v_ISM, v_CS = Const
             return self.Absorptions(Const, params, param, sigma_kernel, Nwindows)
 
         if Nwindows == 2:
             # Fixed parameters
-            W1,W2,F1,F2,E1,E2,l1,l2,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X   = Const
+            W1, W2, F1, F2, E1, E2, l1, l2, BetaPicRV, v_ISM, v_CS   = Const
             return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows)
 
         if Nwindows == 3:
             # Fixed parameters
-            W1,W2,W3,F1,F2,F3,E1,E2,E3,l1,l2,l3,BetaPicRV,v_ism,T_ism,v_bp,T_bp,T_X   = Const
+            W1, W2, W3, F1, F2, F3, E1, E2, E3, l1, l2, l3, BetaPicRV, v_ism, T_ism, v_bp, T_bp, T_X   = Const
             return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows)
