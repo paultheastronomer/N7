@@ -58,14 +58,12 @@ def main():
                 
                 # Fixed ISM parameters
                 param["fit"]["ISM"]["RV"],
-                param["fit"]["ISM"]["T"],
                 
                 # Fixed CS parameters
-                param["fit"]["CS"]["RV"],
-                param["fit"]["CS"]["T"],
+                param["fit"]["CS"]["RV"]]
                 
                 # Fixed exocomet parameters
-                param["fit"]["exocomet"]["T"]]
+                #param["fit"]["exocomet"]["T"]]
 
     Const   =   np.concatenate((ConstA,ConstB))
     
@@ -90,39 +88,47 @@ def main():
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.05,0.0,100.0,1.0,0.05,0.05,100,1.0,1.0,0.05,0.05,100,1])
+    step = np.array([0.04, 0.0, 500.0, 3, 0.05, 0.2, 500.0, 0.2, 0.05, 0.2, 500.0, 0.2, 0.5])
 
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e4)
+    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1e5)
     
-    outfile = 'chains/chain_B_'+sys.argv[1]
-    np.savez(outfile, nN_ISM = chain[:,0], T_ISM = chain[:,1], xi_ISM = chain[:,2],\
-        nN_CS = chain[:,3], nS_CS = chain[:,4], T_CS = chain[:,5], xi_CS = chain[:,6],\
-        RV_X = chain[:,7], nN_X = chain[:,8], nS_X = chain[:,9], T_X = chain[:,10],\
-        xi_X = chain[:,11])
+    outfile = 'chains/chain_C_'+sys.argv[1]
+    np.savez(outfile, nN_ISM = chain[:,0], T_ISM = chain[:,2], xi_ISM = chain[:,3],\
+        nN_CS = chain[:,4], nS_CS = chain[:,5], T_CS = chain[:,6], xi_CS = chain[:,7],\
+        nN_X = chain[:,8], nS_X = chain[:,9], T_X = chain[:,10],xi_X = chain[:,11],RV_X = chain[:,12])
 
     Pout = chain[moves,:]
-    P_plot1 = [0,1]
-    P_plot2 = [2,3]
-    P_plot3 = [4,5]
-    P_plot4 = [6,7]
-    P_plot5 = [8,9]
+    P_plot1 = [0,2]
+    P_plot2 = [3,4]
+    P_plot3 = [5,6]
+    P_plot4 = [7,8]
+    P_plot5 = [9,10]
+    P_plot6 = [11,12]
 
     PU1 = mc.Median_and_Uncertainties(P_plot1,step,chain)
     PU2 = mc.Median_and_Uncertainties(P_plot2,step,chain)
     PU3 = mc.Median_and_Uncertainties(P_plot3,step,chain)
     PU4 = mc.Median_and_Uncertainties(P_plot4,step,chain)
     PU5 = mc.Median_and_Uncertainties(P_plot5,step,chain)
+    PU6 = mc.Median_and_Uncertainties(P_plot6,step,chain)
     
+    print "\nISM:"
     print "log(N(N))_ISM\t=\t"  ,PU1[0][0],"\t+",PU1[1][0],"\t-",PU1[2][0]
-    print "log(N(S))_ISM\t=\t"  ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
+    print "T_ISM\t\t=\t"        ,PU1[0][1],"\t+",PU1[1][1],"\t-",PU1[2][1]
     print "xi_ISM\t\t=\t"       ,PU2[0][0],"\t+",PU2[1][0],"\t-",PU2[2][0]
+    
+    print "\nCS:"
     print "log(N(N))_CS\t=\t"   ,PU2[0][1],"\t+",PU2[1][1],"\t-",PU2[2][1]
     print "log(N(S))_CS\t=\t"   ,PU3[0][0],"\t+",PU3[1][0],"\t-",PU3[2][0]
-    print "xi_CS\t\t=\t"        ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]
-    print "log(N(N))_X\t=\t"    ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
-    print "log(N(S))_X\t=\t"    ,PU4[0][1],"\t+",PU4[1][1],"\t-",PU4[2][1]
-    print "RV_X\t\t=\t"         ,PU5[0][0],"\t+",PU5[1][0],"\t-",PU5[2][0]
-    print "xi_X\t\t=\t"         ,PU5[0][1],"\t+",PU5[1][1],"\t-",PU5[2][1]
+    print "T_CS\t\t=\t"         ,PU3[0][1],"\t+",PU3[1][1],"\t-",PU3[2][1]   
+    print "xi_CS\t\t=\t"        ,PU4[0][0],"\t+",PU4[1][0],"\t-",PU4[2][0]
+ 
+    print "\nX:"
+    print "log(N(N))_X\t=\t"    ,PU4[0][1],"\t+",PU4[1][1],"\t-",PU4[2][1]
+    print "log(N(S))_X\t=\t"    ,PU5[0][0],"\t+",PU5[1][0],"\t-",PU4[2][0]
+    print "T_X\t\t=\t"          ,PU5[0][1],"\t+",PU4[1][1],"\t-",PU5[2][1]
+    print "xi_X\t\t=\t"         ,PU6[0][0],"\t+",PU6[1][0],"\t-",PU6[2][0]
+    print "RV_X\t\t=\t"         ,PU6[0][1],"\t+",PU6[1][1],"\t-",PU6[2][1]
 
 if __name__ == '__main__':
     main()
