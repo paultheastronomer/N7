@@ -10,7 +10,6 @@
 import numpy as np
 import json, sys
 
-
 # Load the package necessary for priting in colour in the terminal.
 from colorama import Fore, Back, Style
 
@@ -30,7 +29,6 @@ def Initialise():
     with open('params.json') as param_file:    
 		param = json.load(param_file)
     return param
-
 
 def main():
     # Read all parameters from params.json file.
@@ -88,18 +86,21 @@ def main():
     Const   =   np.concatenate((ConstA,ConstB))
     
                 # Free ISM parameters
-    Par     =   [param["fit"]["ISM"]["log(H)"],
+    Par     =   [param["fit"]["ISM"]["log(N)"],
+                param["fit"]["ISM"]["log(S)"],
                 param["fit"]["ISM"]["xi"],                
                 
                 # Free CS parameters
-                param["fit"]["disk"]["log(H)"],
+                param["fit"]["disk"]["log(N)"],
+                param["fit"]["disk"]["log(S)"],
                 param["fit"]["disk"]["xi"],
                 
                 # Free exocomet parameters
-                param["fit"]["exocomet"]["log(H)"],
+                param["fit"]["exocomet"]["log(N)"],
+                param["fit"]["exocomet"]["log(S)"],
                 param["fit"]["exocomet"]["RV"],
                 param["fit"]["exocomet"]["xi"]]
- 
+
     if param["fit"]["dofit"] == "yes":
         P =  c.FindBestParams(Par, F1, E1, Const, ModelType, param)
     else:
