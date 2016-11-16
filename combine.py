@@ -106,7 +106,7 @@ def main():
     print "\n\nShifting 30 Jan 2016 observations:"
     W, F0_3, E0_3, F1_3, E1_3, F2_3, E2_3, F3_3, E3_3, AG3, AG3err, F_ave_w_3, E_ave_w_3    = c.ExportShitedSpectra(w0_0,f0_0,f0_3,f1_3,f2_3,f3_3,f_AG_3,e0_0,e0_3,e1_3,e2_3,e3_3,e_AG_3,NumFits_3,s1,s2,Line)
 
-    sys.exit()
+
     #'''
     # Save the shifted from each visit into .dat file
     #np.savetxt(param["directories"]["workdir"]+"V1.dat",np.column_stack((W, f0_0, e0_0, f_AG_0, e_AG_0)))
@@ -252,8 +252,6 @@ def main():
 
     # Save the combined spectrum
     #np.savetxt(param["directories"]["workdir"]+"NI_2016_11_07.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
-    np.savetxt(param["directories"]["workdir"]+"2016_11_15_2015v2_aNI.txt",np.column_stack((w0_0, F3, E3)))
-    sys.exit()
     #'''
     
     # Temp code
