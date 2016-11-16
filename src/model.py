@@ -85,47 +85,6 @@ class Model:
         kernel              = kernel/np.sum(kernel)     
         return kernel
 
-    def VoigtModel(self,params,Const):
-        ''' Basic Voigt model to fit given data '''
-        max_f, av, a, b         = params
-        S,BetaPicRV,RV,kernel   = Const
-
-        f       = max_f*self.voigt_wofz(av,RV)
-        f       = f + (a*RV + b)
-        f_star  = np.convolve(f,kernel,mode='same')
-        
-        return f_star
-
-    def GaussianModel(self,params,Const):
-        ''' Basic Gaussian model to fit given data '''
-        A, sigma,  a, b     = params
-        S,BetaPicRV,RV,kernel,mu        = Const
-
-        u = RV + mu
-
-        G = A*np.exp(-(u)**2/(2.*sigma**2))
-        G = G + (a*u + b)
-
-        f_star  =   np.convolve(G,kernel,mode='same')
-        
-        return f_star
-
-    def GaussianModelDouble(self,params,Const):
-        ''' Basic double Gaussian model to fit given data '''
-        A, sigma1, sigma2, a, b = params
-        S,BetaPicRV,RV,kernel,mu        = Const
-
-        u = RV + mu
-
-        G1 = np.exp(-(u)**2/(2.*sigma1**2))
-        G2 = np.exp(-(u)**2/(2.*sigma2**2))
-
-        Gtot = A*(G1+G2)+(a*u + b)
-
-        f_star  =   np.convolve(Gtot,kernel,mode='same')
-
-        return f_star
-
     def Continuum(self, param, window, l, W, F, E):  
         ''' Function used to model the continuum using only data outside
         of the lines being modeled. '''
@@ -161,7 +120,7 @@ class Model:
         
         return f        
 
-    def absorption(self, l,v_comp,nN,nS,vturb,T,param,Nwindows):
+    def absorption(self, l, v_comp, nN, nS, br, vturb, T, param, Nwindows):
         
         if Nwindows == 1:
             # [Hydrogen, Deuterium]   
@@ -303,7 +262,7 @@ class Model:
         if Nwindows == 3:
             W1, W2, W3, F1, F2, F3, E1, E2, E3,l1,l2,l3, BetaPicRV, v_ISM, v_CS = Const
 
-        nN_ISM, nS_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, T_CS, xi_CS, nN_X, nS_X, T_X, xi_X, v_X     = params
+        nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X, nS_X, b_X, T_X, xi_X, v_X     = params
 
         if param["fit"]["lsf"] == 'tabulated':
             kernel1      =   self.LSF(param["lines"]["line"]["N1"]["Wavelength"], W1)
@@ -311,15 +270,13 @@ class Model:
             kernel1      =   self.K(W1, l1, sigma_kernel)
         
         # Calculates the ISM absorption
-        abs_ism1     =   self.absorption(l1, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
-        abs_bp1      =   self.absorption(l1, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
-        abs_X1       =   self.absorption(l1, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)
+        abs_ism1     =   self.absorption(l1, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
+        abs_bp1      =   self.absorption(l1, v_CS, nN_CS, nS_CS, b_ISM, xi_CS, T_CS, param, Nwindows)
+        abs_X1       =   self.absorption(l1, v_X, nN_X, nS_X, b_X, xi_X, T_X, param, Nwindows) 
         
         # Continuum line
         f1           =   self.Continuum(param, param["display"]["window1"]["name"], l1, W1, F1, E1)
         
-        # Stellar spectral profile, as seen from Earth
-        # after absorption by the ISM and BP CS disk.
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
         
@@ -350,17 +307,12 @@ class Model:
             kernel2      =   self.K(W2, l2, sigma_kernel)
 
             # Calculates the absorptions            
-            abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
-            abs_bp2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
-            abs_X2       =   self.absorption(l2, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)
+            abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
+            abs_bp2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
+            abs_X2       =   self.absorption(l2, v_X, nN_X, nS_X, b_X, xi_X, T_X, param, Nwindows)
             
             # Continuum line
             f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
-            
-            # Stellar spectral profile, as seen from Earth
-            # after absorption by the ISM and BP CS disk.
-            # Profile has been convolved with HST LSF
-            #    -  in (erg cm-2 s-1 A-1)
             
             f_abs_con2   =   np.convolve(f2*abs_ism2*abs_bp2*abs_X2, kernel2, mode='same')
 
@@ -395,11 +347,6 @@ class Model:
             # Continuum line
             f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
             
-            # Stellar spectral profile, as seen from Earth
-            # after absorption by the ISM and BP CS disk.
-            # Profile has been convolved with HST LSF
-            #    -  in (erg cm-2 s-1 A-1)
-            
             f_abs_con2   =   np.convolve(f2*abs_ism2*abs_bp2*abs_X2, kernel2, mode='same')
 
             # Absorption by ISM
@@ -431,11 +378,6 @@ class Model:
             # Continuum line
             f3           =   self.Continuum(param, param["display"]["window3"]["name"], l3, W3, F3, E3)
             
-            # Stellar spectral profile, as seen from Earth
-            # after absorption by the ISM and BP CS disk.
-            # Profile has been convolved with HST LSF
-            #    -  in (erg cm-2 s-1 A-1)
-            
             f_abs_con3   =   np.convolve(f3*abs_ism3*abs_bp3*abs_X3, kernel3, mode='same')
 
             # Absorption by ISM
@@ -466,7 +408,7 @@ class Model:
         sigma_kernel    = param["instrument"]["sigma_kernel"]
 
         # Free parameters
-        nN_ISM, nS_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, T_CS, xi_CS, nN_X, nS_X, T_X, xi_X, v_X     = params
+        nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X, nS_X, b_X, T_X, xi_X, v_X     = params
 
         Nwindows        = param["fit"]["windows"]["number"]
 
