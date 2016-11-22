@@ -40,28 +40,30 @@ class Model:
         '''
         return wofz(u + 1j * a).real
 
-    def LSF(self,lsf_cen, W):
+    def LSF(self, param, W):
         ''' Tabulated Theoretical Line Spread Functions at Lifetime position 3
         Taken from http://www.stsci.edu/hst/cos/performance/spectral_resolution/
         '''
+        lsf_cen         = param["lines"]["line"]["N1"]["Wavelength"]
         # Load the wavelengths which have computed LSF values
-        X =  np.genfromtxt('data/fuv_G130M_1291_lsf.dat', unpack=True).T[0]
+        X               =  np.genfromtxt('data/fuv_G130M_1291_lsf.dat', unpack=True).T[0]
         
         # Find the LSF closest to lsf_cen in Angstrom. See params.json.
-        closest_LSF = min(X, key=lambda x:abs(x-lsf_cen))
+        closest_LSF     = min(X, key=lambda x:abs(x-lsf_cen))
 
-        df      = pd.read_csv('data/fuv_G130M_1291_lsf.dat', delim_whitespace=True)
-        Y       = df[0:][str(int(closest_LSF))]
+        df              = pd.read_csv('data/fuv_G130M_1291_lsf.dat', delim_whitespace=True)
+        Y               = df[0:][str(int(closest_LSF))]   
 
-        pix     = np.arange(-(len(Y))/2,len(Y)/2)+0.5
+        LSF_pix_tabu    = np.arange(-(len(Y))/2,len(Y)/2)+0.5
+        LSF_pix_kernel  = np.arange(-len(W)-100,len(W)+100,param["fit"]["pix_resolution"])       # In pixels. [-345:344]. Len tabulated LSF is 321
 
-        kern    = np.arange(-len(W),len(W),1)
+        dw_cos          = (W[-1]-W[0])/len(W)    # The size of a COS pixel in Angstrom: 1 pix = 0.00993320637681 Angstrom
 
-        dw_fit  = 0.0024913932510912673 # 1/10th of COS pixel size
-        dw_cos  = 0.0099655730043650692 # Size of COS pixel in
-
+        x_LSF           = LSF_pix_tabu*dw_cos   # The x-coordinates of the tabulated LSF in units of Angstrom. Length 321.
+        y_LSF           = Y                     # The y-coordinates of the tabulated LSF ranging from 0 to 1. Length 321.
+        x_val           = LSF_pix_kernel*dw_cos     # The x-coordinates of the interpolated values in RV
         
-        LSF_kernel      = np.interp(kern*dw_fit,pix*dw_cos,Y)
+        LSF_kernel      = np.interp(x_val, x_LSF, y_LSF)
         LSF_kernel      = LSF_kernel/np.sum(LSF_kernel)
 
         return LSF_kernel
@@ -80,7 +82,7 @@ class Model:
         fwhm_cos_G130M_Ang  = sigma_kernel * dwave              # FWHM in Ang. 0.0648 Ang eq. to 6.5 pix.
         fwhm_cos_G130M_dl   = fwhm_cos_G130M_Ang / dl           # FWHM in Pix?
         c                   = fwhm_cos_G130M_dl/(2*np.sqrt(2*np.log(2.)))
-        kern                = np.arange(-len(W),len(W),1)   # Same as l in fit.py
+        kern                = np.arange(-len(W),len(W),1)       # Same as l in fit.py
         kernel              = np.exp(-kern**2/(2*c**2))
         kernel              = kernel/np.sum(kernel)     
         return kernel
@@ -265,7 +267,7 @@ class Model:
         nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X, nS_X, b_X, T_X, xi_X, v_X     = params
 
         if param["fit"]["lsf"] == 'tabulated':
-            kernel1      =   self.LSF(param["lines"]["line"]["N1"]["Wavelength"], W1)
+            kernel1      =   self.LSF(param, W1)
         else:
             kernel1      =   self.K(W1, l1, sigma_kernel)
         
@@ -300,11 +302,9 @@ class Model:
         if Nwindows == 2:
 
             if param["fit"]["lsf"] == 'tabulated':
-                kernel2      =   self.LSF(param["lines"]["line"]["Nw1"]["Wavelength"], W2)
+                kernel2      =   self.LSF(param, W2)
             else:
                 kernel2      =   self.K(W2, l2, sigma_kernel)
-
-            kernel2      =   self.K(W2, l2, sigma_kernel)
 
             # Calculates the absorptions            
             abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
@@ -333,16 +333,14 @@ class Model:
         if Nwindows == 3:
 
             if param["fit"]["lsf"] == 'tabulated':
-                kernel2      =   self.LSF(param["lines"]["line"]["Nw1"]["Wavelength"], W2)
+                kernel2      =   self.LSF(param, W2)
             else:
                 kernel2      =   self.K(W2, l2, sigma_kernel)
 
-            kernel2      =   self.K(W2, l2, sigma_kernel)
-
             # Calculates the absorptions            
-            abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
-            abs_bp2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
-            abs_X2       =   self.absorption(l2, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)
+            abs_ism2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
+            abs_bp2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
+            abs_X2       =   self.absorption(l2, v_X, nN_X, nS_X, b_X, xi_X, T_X, param, Nwindows)
             
             # Continuum line
             f2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
@@ -364,16 +362,14 @@ class Model:
             unconvolved2 =  f2*abs_ism2*abs_bp2*abs_X2
 
             if param["fit"]["lsf"] == 'tabulated':
-                kernel3      =   self.LSF(param["lines"]["line"]["Nm1"]["Wavelength"], W2)
+                kernel3      =   self.LSF(param, W2)
             else:
                 kernel3      =   self.K(W3, l3, sigma_kernel)
 
-            kernel3      =   self.K(W3, l3, sigma_kernel)
-
             # Calculates the absorptions
-            abs_ism3     =   self.absorption(l3, v_ISM, nN_ISM, nS_ISM, xi_ISM, T_ISM, param, Nwindows)
-            abs_bp3      =   self.absorption(l3, v_CS, nN_CS, nS_CS, xi_CS, T_CS, param, Nwindows)
-            abs_X3       =   self.absorption(l3, v_X, nN_X, nS_X, xi_X, T_X, param, Nwindows)            
+            abs_ism3     =   self.absorption(l3, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
+            abs_bp3      =   self.absorption(l3, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
+            abs_X3       =   self.absorption(l3, v_X, nN_X, nS_X, b_X, xi_X, T_X, param, Nwindows)
             
             # Continuum line
             f3           =   self.Continuum(param, param["display"]["window3"]["name"], l3, W3, F3, E3)
@@ -424,5 +420,5 @@ class Model:
 
         if Nwindows == 3:
             # Fixed parameters
-            W1, W2, W3, F1, F2, F3, E1, E2, E3, l1, l2, l3, BetaPicRV, v_ism, T_ism, v_bp, T_bp, T_X   = Const
+            W1, W2, W3, F1, F2, F3, E1, E2, E3, l1, l2, l3, BetaPicRV, v_ISM, v_CS   = Const
             return self.Absorptions(Const, params, param,  sigma_kernel, Nwindows)

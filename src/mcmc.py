@@ -27,6 +27,13 @@ class MCMC:
           print (i/C)*100.," % done"
         jump        = np.random.normal(0.,1.,len(S)) * S
         P           = P + jump
+        
+        while P[0] < 12.0 or abs(P[4]) > 10.0 or P[5] < 12.0 or P[15] < 35.0:
+          P         = P - jump
+          jump      = np.random.normal(0.,1.,len(S)) * S
+          P         = P + jump
+
+
         new_fit     = m.Model(P, Const, ModelType, param)[0]
         X           = X[0],X[1],new_fit
         L_new       = s.Merit(X)

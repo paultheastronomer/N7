@@ -23,7 +23,7 @@ class Plotting:
 
         return fig
 
-    def OverviewPlot(self, part, x_lim1, x_lim2, w0_0, w_bin, ratio1, ratio2, ratio3, y0_bin, y1_bin, y2_bin, y3_bin, s1, s2):
+    def OverviewPlot(self, part, x_lim1, x_lim2, y_lim1, y_lim2, w0_0, w_bin, ratio1, ratio2, ratio3, y0_bin, y1_bin, y2_bin, y3_bin, s1, s2):
         fig = self.FigParams()
         #fig = plt.figure(figsize=(10,14))
 
@@ -38,10 +38,7 @@ class Plotting:
         plt.plot([w0_0[s1],w0_0[s1]],[0,10],'-k')
         plt.plot([w0_0[s2],w0_0[s2]],[0,10],'-k')
         plt.xlim(x_lim1,x_lim2)
-        if part == 'A':
-          plt.ylim(0.25,2.3)
-        else:
-          plt.ylim(0.7,4.0)
+        plt.ylim(0,4)
         plt.legend(loc='upper left', numpoints=1)
 
 
@@ -55,11 +52,7 @@ class Plotting:
         plt.plot([w0_0[s1],w0_0[s1]],[0,3],'-k')
         plt.plot([w0_0[s2],w0_0[s2]],[0,3],'-k')
         plt.xlim(x_lim1,x_lim2)
-          
-        if part == 'A':
-          plt.ylim(0.,1.2e-12) 
-        else:
-          plt.ylim(0.,1.0e-13) 
+        plt.ylim(y_lim1,y_lim2)          
 
         plt.legend(loc='upper left', numpoints=1)
         
@@ -162,7 +155,7 @@ class Plotting:
 
         plt.minorticks_on()
         fig.tight_layout()
-        #fig.savefig("plots/"+window+"_168.pdf")
+        #fig.savefig("plots/"+window+"_mcmc.pdf")
         plt.show()
 
     def OwensPlot(self, param, window, W, NoPSF, F, E, Continuum, Fit, NI_1, SIII_1, NI_2, SIII_2, NI_3, SIII_3):
