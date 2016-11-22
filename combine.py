@@ -22,8 +22,6 @@ def main():
 
     part            = param["BetaPictoris"]["part"]   # A = red, B = blue
     bin_size        = param["display"]["bin"]
-    x_lim1          = param["display"]["overview"]["Ax1"]
-    x_lim2          = param["display"]["overview"]["Ax2"]   
     Line            = param["lines"]["line"]["N1"]["Wavelength"]
     RV_BP           = param["BetaPictoris"]["RV"]
 
@@ -70,11 +68,25 @@ def main():
     # which determine the region to be
     # cross correlated.
     if part == 'A':    
-        s1 = 6100
-        s2  = 11400  
+        x_lim1          = param["display"]["overview"]["Ax1"]
+        x_lim2          = param["display"]["overview"]["Ax2"]   
+        y_lim1          = param["display"]["overview"]["Ay1"]
+        y_lim2          = param["display"]["overview"]["Ay2"]  
+        n1              = param["regions"]["norm"]["A1"]
+        n2              = param["regions"]["norm"]["A2"]
+        s1              = param["regions"]["align"]["A1"]
+        s2              = param["regions"]["align"]["A2"]
     else:
-        s1 = 10000     # Original region
-        s2  = 13473
+        x_lim1          = param["display"]["overview"]["Bx1"]
+        x_lim2          = param["display"]["overview"]["Bx2"]   
+        y_lim1          = param["display"]["overview"]["By1"]
+        y_lim2          = param["display"]["overview"]["By2"]  
+        n1              = param["regions"]["norm"]["B1"]    # "B1"        : 7700,
+        n2              = param["regions"]["norm"]["B2"]    # "B2"        : 8050
+        s1              = param["regions"]["align"]["B1"]
+        s2              = param["regions"]["align"]["B2"]
+        #s1 = 10000     # Original region
+        #s2  = 13473
         #s1 = 12550  # Region around a SII line
         #s2 = 12750
         #s1 = 7200  # Region just left of the NI line
@@ -85,7 +97,7 @@ def main():
         #s2 = 7647
 
     # Creates a figure showing the quiet regions of the spectra.
-    #p.OverviewPlot(part, x_lim1, x_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
+    #p.OverviewPlot(part, x_lim1, x_lim2, y_lim1, y_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
     #sys.exit()
 
     # --------------------------------------------------------------------------
@@ -121,16 +133,14 @@ def main():
     # Calculate the Correction Factor. Find which factor to multiply the spectra by to match the F0_0 flux level.
     # First define the region [n1:n2] where the flux from the individual spectra should be compared
 
-    n1 = 7700
-    n2 = 8050
 
     # To see the chosen region uncomment the lines below.
     '''
-    #plt.plot(W,F0_0)
-    #plt.plot(W,F0_1)
-    #plt.plot(W[n1:n2],F0_1[n1:n2])
-    #plt.show()
-    #sys.exit()
+    plt.plot(W,F0_0)
+    plt.plot(W,F0_1)
+    plt.plot(W[n1:n2],F0_1[n1:n2])
+    plt.show()
+    sys.exit()
     '''
 
     C   = [c.CF(F0_1,E0_1,F0_0,E0_0,n1,n2),c.CF(F1_1,E1_1,F0_0,E0_0,n1,n2),c.CF(F2_1,E2_1,F0_0,E0_0,n1,n2),\
@@ -252,6 +262,8 @@ def main():
 
     # Save the combined spectrum
     #np.savetxt(param["directories"]["workdir"]+"NI_2016_11_07.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
+    #np.savetxt(param["directories"]["workdir"]+"2016_11_17_2014_B.txt",np.column_stack((w0_0, F1, E1)))
+    #sys.exit()
     #'''
     
     # Temp code
