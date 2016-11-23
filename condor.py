@@ -18,6 +18,6 @@ for i in range(len(nodes)):
 		print "running core ",j+1," on node ",nodes[i]+".iap.fr"
 		job = Job('MCMC_NI_'+str(nodes[i])+"_"+str(j+1),attributes=Templates.base)
 		job.executable = "MCMC_XA.py"
-		job.arguments = str(j)
+		job.arguments = str(j+1)
 		job.requirements = "Machine=="+nodes[i]+".iap.fr"
 		job.submit()
