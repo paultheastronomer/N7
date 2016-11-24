@@ -24,11 +24,11 @@ def Uncertainties(x):
    return med,up-med,med-down   
 
 # Select which posterior distributions to use.
-letter = '3EXO_Gauss_1_fast'
-chains = 24
+letter = '3EXO_Gauss_1b_fast'
+chains_number = 100
 # Load the MCMC data
 chains = []
-for i in range(1,chains+1):
+for i in range(1,chains_number+1):
   chains.append(np.load('chains/chain_'+letter+'_'+str(i)+'.npz'))
 
 nN_ISM  = chains[0]['nN_ISM']
@@ -63,7 +63,7 @@ T_X3    = chains[0]['T_X3']
 xi_X3   = chains[0]['xi_X3']
 RV_X3   = chains[0]['RV_X3']
 
-for i in range(chains-1):
+for i in range(chains_number-1):
   nN_ISM  = np.concatenate((nN_ISM,chains[i+1]['nN_ISM']))
   b_ISM   = np.concatenate((b_ISM,chains[i+1]['b_ISM']))
   T_ISM   = np.concatenate((T_ISM,chains[i+1]['T_ISM']))
