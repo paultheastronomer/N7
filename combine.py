@@ -97,8 +97,9 @@ def main():
         #s2 = 7647
 
     # Creates a figure showing the quiet regions of the spectra.
+    p.AGPlot(w_AG_0,f_AG_0,w_AG_1,f_AG_1,w_AG_2,f_AG_2,w_AG_3,f_AG_3)
     #p.OverviewPlot(part, x_lim1, x_lim2, y_lim1, y_lim2, w0_0, w0_bin, ratio1, ratio2, ratio3, f0_bin, f1_bin, f2_bin, f3_bin, s1, s2)
-    #sys.exit()
+    sys.exit()
 
     # --------------------------------------------------------------------------
     # This is where the the quiet region of the spectra
@@ -262,6 +263,7 @@ def main():
 
     # Save the combined spectrum
     #np.savetxt(param["directories"]["workdir"]+"NI_2016_11_07.txt",np.column_stack((w0_0, F_tot, F_tot_err)))
+    #np.savetxt(param["directories"]["workdir"]+"A_2015v2.txt",np.column_stack((w0_0, F3, E3)))
     #np.savetxt(param["directories"]["workdir"]+"2016_11_17_2014_B.txt",np.column_stack((w0_0, F1, E1)))
     #sys.exit()
     #'''
@@ -306,8 +308,8 @@ def main():
     RotBroadSpec    = c.RotBroad(w0_0, Fint, eps, vsini)
 
     # Perform LSF calculation
-    kernel1         = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], w0_0)
-    Fx_con          = np.convolve(RotBroadSpec, kernel1, mode='valid')[:-1]
+    #kernel1         = m.LSF(param["lines"]["line"]["N1"]["Wavelength"], w0_0)
+    #Fx_con          = np.convolve(RotBroadSpec, kernel1, mode='valid')[:-1]
 
     synth_norm_region = []
     norm_region       = []

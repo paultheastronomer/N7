@@ -21,6 +21,7 @@ class MCMC:
       moves     = 0
       chain     = np.zeros(shape=(int(C),len(P)))
       L_chain   = np.zeros(shape=(int(C),1))
+      stats     = np.zeros(shape=(int(C),1))
       
       for i in range(int(C)):
         if i%100 == 0.:
@@ -28,7 +29,7 @@ class MCMC:
         jump        = np.random.normal(0.,1.,len(S)) * S
         P           = P + jump
         
-        while P[0] < 12.0 or abs(P[4]) > 10.0 or P[5] < 12.0 or P[15] < 35.0:
+        while P[0] < 12.0 or P[5] < 12.0:
           P         = P - jump
           jump      = np.random.normal(0.,1.,len(S)) * S
           P         = P + jump
@@ -39,7 +40,7 @@ class MCMC:
         L_new       = s.Merit(X)
         L_chain[i]  = L_new
         ratio       = L_new/L
-        #print "ok"
+
         if (np.random.random() > ratio):
           P     = P - jump
           moved = 0
@@ -48,7 +49,10 @@ class MCMC:
           moved = 1
         moves  += moved
         chain[i,:] = np.array(P)
+
+        # Calculate Chi2
+        stats[i] = s.chi2(X)
       
       print "\nAccepted steps: ",round(100.*(moves/C),2),"%"
       
-      return chain, moves
+      return chain, moves, stats

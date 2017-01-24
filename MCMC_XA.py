@@ -74,24 +74,36 @@ def main():
                 param["fit"]["CS"]["xi"],
                 
                 # Exocomet parameters which can be set free
-                param["fit"]["exocomet"]["log(N)"],
-                param["fit"]["exocomet"]["log(S)"],
-                param["fit"]["exocomet"]["b"],
-                param["fit"]["exocomet"]["T"],
-                param["fit"]["exocomet"]["xi"],
-                param["fit"]["exocomet"]["RV"]]
+                param["fit"]["exocomet1"]["log(N)"],
+                param["fit"]["exocomet1"]["log(S)"],
+                param["fit"]["exocomet1"]["b"],
+                param["fit"]["exocomet1"]["T"],
+                param["fit"]["exocomet1"]["xi"],
+                param["fit"]["exocomet1"]["RV"],
+
+                param["fit"]["exocomet2"]["log(N)"],
+                param["fit"]["exocomet2"]["log(S)"],
+                param["fit"]["exocomet2"]["b"],
+                param["fit"]["exocomet2"]["T"],
+                param["fit"]["exocomet2"]["xi"],
+                param["fit"]["exocomet2"]["RV"]]
 
     X = F1, E1, m.Model(Par,Const,ModelType,param)[0]
 
-    step = np.array([0.1, 0.0, 0.0, 0.0, 0.5,    0.2, 0.0, 0.0, 0.0, 0.2,    0.05, 0.0, 0.0, 0.0, 1.0, 2.0])
+    step = np.array([0.05, 0.0, 0.0, 0.0, 0.0,    0.05, 0.0, 0.0, 0.0, 0.1,    0.05, 0.0, 0.0, 0.0, 0.1, 1.0,     0.05, 0.0, 0.0, 0.0, 0.1, 1.0])
     #step = np.array([0.2, 0.0, 0.0, 0.0, 0.1,    0.05, 0.0, 0.0, 0.0, 0.1,    0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-    chain, moves = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,1.0e5)
+    chain, moves, stats = mc.McMC(W,X,m.Model, ModelType, param, Par, Const, step,param["fit"]["MCMC"]["number_of_steps"])
+
+    name = param["fit"]["MCMC"]["chain_name"]#"3EXO_Tab_1"
     
-    outfile = 'chains/chain_b7fast_'+sys.argv[1]
+    outfile = 'chains/'+name+'_'+sys.argv[1]
     np.savez(outfile, nN_ISM = chain[:,0], nS_ISM = chain[:,1], b_ISM = chain[:,2], T_ISM = chain[:,3], xi_ISM = chain[:,4],\
         nN_CS = chain[:,5], nS_CS = chain[:,6],  b_CS = chain[:,7], T_CS = chain[:,8], xi_CS = chain[:,9],\
-        nN_X = chain[:,10], nS_X = chain[:,11],  b_X = chain[:,12], T_X = chain[:,13],xi_X = chain[:,14],RV_X = chain[:,15])
+        nN_X1 = chain[:,10], nS_X1 = chain[:,11],  b_X1 = chain[:,12], T_X1 = chain[:,13],xi_X1 = chain[:,14],RV_X1 = chain[:,15],
+        nN_X2 = chain[:,16], nS_X2 = chain[:,17],  b_X2 = chain[:,18], T_X2 = chain[:,19],xi_X2 = chain[:,20],RV_X2 = chain[:,21])
+    statsfile = 'chains/Stat_'+name+'_'+sys.argv[1]
+    np.savez(statsfile, Chi2 = stats[:,0])
 
 if __name__ == '__main__':
     main()

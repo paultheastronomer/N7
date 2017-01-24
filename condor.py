@@ -6,8 +6,8 @@ Written by: Dr. Paul A. Wilson (paul.wilson@iap.fr)
 from condorpy import Job, Templates
 import numpy as np
 
-cores = np.arange(20)						# Run on 20 cores
-nodes = ['"exa14.iap.fr"','"exa21.iap.fr"']	# Run on two nodes
+cores = np.arange(20)						# Run on 20 cores as there is 20 cores per node
+nodes = ['"exa13.iap.fr"','"exa14.iap.fr"','"exa21.iap.fr"']	# Run on three nodes
 
 
 job = Job("MCMC")
