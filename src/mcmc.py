@@ -24,16 +24,15 @@ class MCMC:
       stats     = np.zeros(shape=(int(C),1))
       
       for i in range(int(C)):
-        if i%100 == 0.:
-          print (i/C)*100.," % done"
+        #if i%100 == 0.:
+        #  print (i/C)*100.," % done"
         jump        = np.random.normal(0.,1.,len(S)) * S
         P           = P + jump
         
-        while P[0] < 12.0 or P[5] < 12.0:
+        while P[0] < 10.0 or P[6] < 10.0 or P[11] < 10.0 or P[16] < 10.0:# or P[22] < 11.0:
           P         = P - jump
           jump      = np.random.normal(0.,1.,len(S)) * S
           P         = P + jump
-
 
         new_fit     = m.Model(P, Const, ModelType, param)[0]
         X           = X[0],X[1],new_fit

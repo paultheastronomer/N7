@@ -80,8 +80,18 @@ def main():
 
     Const   =   np.concatenate((ConstA,ConstB))
     
+                
+    Par     =   [
+                # GEO parameters which can be set free
+                param["fit"]["GEO"]["log(N)"],
+                param["fit"]["GEO"]["log(S)"],
+                param["fit"]["GEO"]["b"],
+                param["fit"]["GEO"]["T"],
+                param["fit"]["GEO"]["xi"],
+                param["fit"]["GEO"]["RV"],
+
                 # ISM parameters which can be set free
-    Par     =   [param["fit"]["ISM"]["log(N)"],
+                param["fit"]["ISM"]["log(N)"],
                 param["fit"]["ISM"]["log(S)"],
                 param["fit"]["ISM"]["b"],
                 param["fit"]["ISM"]["T"],
@@ -123,22 +133,22 @@ def main():
 
     # Using the parameters above create a model then plot the result.
     if Nwindows == 1:
-        f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1 = m.Model(P,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1)    
+        f_abs_int_w1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1 = m.Model(P,Const,ModelType,param)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1)    
     if Nwindows == 2:
-        f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, f_abs_int_w2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2 = m.Model(P,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1) 
-        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2)
+        f_abs_int_w1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1, f_abs_int_w2, f_abs_con_w2, f_abs_geo_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2, pn_w2 = m.Model(P,Const,ModelType,param)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1) 
+        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con_w2, f_abs_geo_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2, pn_w2)
         X = [F2, E2, f_abs_int_w2]
         print "Chi2:\t",s.chi2(X)
         print "DOF:\t\t",len(W1)-len(P)
         print "Chi2 reduced:\t",s.chi2(X)/(len(F2)-len(P)),"\n"
 
     if Nwindows == 3:
-        f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, f_abs_X3_w1, unconvolved_w1, f_abs_int_w2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, f_abs_X3_w2, unconvolved_w2, f_abs_int_w3, f_abs_con_w3, f_abs_ism_w3, f_abs_bp_w3,  f_abs_X1_w3, f_abs_X2_w3, f_abs_X3_w3, unconvolved_w3 = m.Model(P,Const,ModelType,param)
-        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, f_abs_X3_w1, unconvolved_w1) 
-        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, f_abs_X3_w2, unconvolved_w2)
-        p.BasicPlot(param, param["display"]["window3"]["name"], W, F, E, l3, f_abs_con_w3, f_abs_ism_w3, f_abs_bp_w3, f_abs_X1_w3, f_abs_X2_w3, f_abs_X3_w3, unconvolved_w3)
+        f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, f_abs_GEO_w1, unconvolved_w1, pn_w1, f_abs_int_w2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, f_abs_GEO_w2, unconvolved_w2, pn_w2, f_abs_int_w3, f_abs_con_w3, f_abs_ism_w3, f_abs_bp_w3,  f_abs_X1_w3, f_abs_X2_w3, f_abs_GEO_w3, unconvolved_w3, pn_w3 = m.Model(P,Const,ModelType,param)
+        p.BasicPlot(param, param["display"]["window1"]["name"], W, F, E, l1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, f_abs_GEO_w1, unconvolved_w1, pn_w1) 
+        p.BasicPlot(param, param["display"]["window2"]["name"], W, F, E, l2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, f_abs_GEO_w2, unconvolved_w2, pn_w2)
+        p.BasicPlot(param, param["display"]["window3"]["name"], W, F, E, l3, f_abs_con_w3, f_abs_ism_w3, f_abs_bp_w3, f_abs_X1_w3, f_abs_X2_w3, f_abs_GEO_w3, unconvolved_w3, pn_w3)
 
     # Compute the goodness of fit.
     X = [F1, E1, f_abs_int_w1]

@@ -99,7 +99,7 @@ class Plotting:
         fig.tight_layout()
         plt.show()
 
-    def BasicPlot(self,param,window,W, F, E,l,f_fit,f_abs_ism,f_abs_bp,f_abs_X1,f_abs_X2,unconvolved):
+    def BasicPlot(self,param,window,W, F, E,l,f_fit,f_abs_geo,f_abs_ism,f_abs_bp,f_abs_X1,f_abs_X2,unconvolved, pn):
 
         fig = self.FigParams()
         
@@ -133,12 +133,19 @@ class Plotting:
         closest_W5  = min(W, key=lambda x:abs(x-c5))
         i5          = list(W).index(closest_W5)
 
-        plt.plot(l,unconvolved,color="cyan")
-        plt.plot(l,f_abs_X1,color="#FF9303",lw=2)
-        plt.plot(l,f_abs_X2,color="#FF9303",lw=2)
-        plt.plot(l,f_abs_ism,color="#0386FF",lw=2)
-        plt.plot(l,f_abs_bp,color="#00B233",lw=2)   
-        plt.plot(l,f_fit,lw=2,color='#FF281C',label=r'Best fit')
+        #plt.plot(l,unconvolved,color="cyan")
+        #xx = 
+        xx = np.arange(x1,x2,1e-2)
+        continuum = pn(xx)
+        # [:-35] is chosen to remove edge effect in fit 
+
+        plt.plot(l[:-35],f_abs_geo[:-35],color="#01B233",lw=2)
+        plt.plot(l[:-35],f_abs_X1[:-35],color="#FF9F03",lw=2)
+        #plt.plot(l,f_abs_X2,color="#330000",lw=2)
+        #plt.plot(l,f_abs_ism,color="#FFA500",lw=2)
+        plt.plot(l[:-35],f_abs_bp[:-35],color="#0386ff",lw=2)   
+        plt.plot(l[:-35],f_fit[:-35],lw=2,color='red',label=r'Best fit')
+        plt.plot(xx,continuum,color="#0101DF",lw=2)
 
         if param["display"]["bin"] > 1:
             bin_size = param["display"]["bin"]
@@ -181,7 +188,7 @@ class Plotting:
 
         plt.minorticks_on()
         fig.tight_layout()
-        #fig.savefig("plots/"+window+".png")
+        fig.savefig("plots/"+window+".pdf")
         plt.show()
 
     def OwensPlot(self, param, window, W, NoPSF, F, E, Continuum, Fit, NI_1, SIII_1, NI_2, SIII_2, NI_3, SIII_3):

@@ -93,7 +93,7 @@ class Model:
 
         # I am redefining W, F, E as I do wish to model a region different from the region
         # used to determine the continuum
-        dat_directory   = param["directories"]["exoatmdir"]
+        dat_directory   = param["directories"]["workdir"]
         W, F, E         = np.genfromtxt(dat_directory+param["files"]["datafile"],unpack=True)
 
         c0  = param["fit"]["windows"][window]["cut0"]
@@ -132,8 +132,8 @@ class Model:
         z           = np.polyfit(W, F, param["fit"]["windows"][window]["order"], rcond=None, full=False, w=weights)
         pn          = np.poly1d(z)
         f           = pn(l)
-        
-        return f        
+
+        return pn, f        
 
     def absorption(self, l, v_comp, nN, nS, br, vturb, T, param, Nwindows):
         
@@ -277,7 +277,7 @@ class Model:
         if Nwindows == 3:
             W1, W2, W3, F1, F2, F3, E1, E2, E3,l1,l2,l3, BetaPicRV, v_ISM, v_CS = Const
 
-        nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X1, nS_X1, b_X1, T_X1, xi_X1, v_X1, nN_X2, nS_X2, b_X2, T_X2, xi_X2, v_X2     = params
+        nN_GEO, nS_GEO, b_GEO, T_GEO, xi_GEO, v_GEO, nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X1, nS_X1, b_X1, T_X1, xi_X1, v_X1, nN_X2, nS_X2, b_X2, T_X2, xi_X2, v_X2    = params
 
         if param["fit"]["lsf"] == 'tabulated':
             kernel_w1  =   self.LSF(param, W1)
@@ -285,18 +285,22 @@ class Model:
             kernel_w1  =   self.K(W1, l1, sigma_kernel)
         
         # Calculates the ISM absorption
+        abs_geo_w1     =   self.absorption(l1, v_GEO, nN_GEO, nS_GEO, b_GEO, xi_GEO, T_GEO, param, Nwindows)
         abs_ism_w1     =   self.absorption(l1, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
         abs_bp_w1      =   self.absorption(l1, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
         abs_X1_w1      =   self.absorption(l1, v_X1, nN_X1, nS_X1, b_X1, xi_X1, T_X1, param, Nwindows)
         abs_X2_w1      =   self.absorption(l1, v_X2, nN_X2, nS_X2, b_X2, xi_X2, T_X2, param, Nwindows)
         
         # Continuum line
-        f_w1           =   self.Continuum(param, param["display"]["window1"]["name"], l1, W1, F1, E1)
+        pn_w1, f_w1     =   self.Continuum(param, param["display"]["window1"]["name"], l1, W1, F1, E1)
         
         # Profile has been convolved with HST LSF
         #    -  in (erg cm-2 s-1 A-1)
         
-        f_abs_con_w1    =   np.convolve(f_w1*abs_ism_w1*abs_bp_w1*abs_X1_w1*abs_X2_w1, kernel_w1, mode='same')
+        f_abs_con_w1    =   np.convolve(f_w1*abs_geo_w1*abs_ism_w1*abs_bp_w1*abs_X1_w1*abs_X2_w1, kernel_w1, mode='same')
+
+        # Absorption by Earth's Atmosphere
+        f_abs_geo_w1    =   np.convolve(f_w1*abs_geo_w1, kernel_w1, mode='same') 
 
         # Absorption by ISM
         f_abs_ism_w1    =   np.convolve(f_w1*abs_ism_w1, kernel_w1, mode='same')        
@@ -311,7 +315,7 @@ class Model:
         # Interpolation on COS wavelengths, relative to the star
         f_abs_int_w1    =   np.interp(W1,l1,f_abs_con_w1)
 
-        unconvolved_w1  =  f_w1*abs_ism_w1*abs_bp_w1*abs_X1_w1*abs_X2_w1
+        unconvolved_w1  =  f_w1*abs_geo_w1*abs_ism_w1*abs_bp_w1*abs_X1_w1*abs_X2_w1
                 
 
         if Nwindows == 2:
@@ -321,16 +325,20 @@ class Model:
             else:
                 kernel_w2      =   self.K(W2, l2, sigma_kernel)
 
-            # Calculates the absorptions            
+            # Calculates the absorptions
+            abs_geo_w2     =   self.absorption(l2, v_GEO, nN_GEO, nS_GEO ,b_GEO, xi_GEO, T_GEO, param, Nwindows)            
             abs_ism_w2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
             abs_bp_w2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
             abs_X1_w2      =   self.absorption(l2, v_X1, nN_X1, nS_X1, b_X1, xi_X1, T_X1, param, Nwindows)
             abs_X2_w2      =   self.absorption(l2, v_X2, nN_X2, nS_X2, b_X2, xi_X2, T_X2, param, Nwindows)
             
             # Continuum line
-            f_w2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
+            pn_w2, f_w2     =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
             
-            f_abs_con_w2   =   np.convolve(f_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2, kernel_w2, mode='same')
+            f_abs_con_w2   =   np.convolve(f_w2*abs_geo_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2, kernel_w2, mode='same')
+
+            # Absorption by Earth's Atmosphere
+            f_abs_geo_w2   =   np.convolve(f_w2*abs_geo_w2, kernel_w2, mode='same')
 
             # Absorption by ISM
             f_abs_ism_w2   =   np.convolve(f_w2*abs_ism_w2, kernel_w2, mode='same')        
@@ -345,25 +353,28 @@ class Model:
             # Interpolation on COS wavelengths, relative to the star
             f_abs_int_w2   =   np.interp(W2,l2,f_abs_con_w2)
 
-            unconvolved_w2 =   f_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2
+            unconvolved_w2 =   f_w2*abs_geo_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2
 
         if Nwindows == 3:
-
             if param["fit"]["lsf"] == 'tabulated':
                 kernel_w2      =   self.LSF(param, W2)
             else:
                 kernel_w2      =   self.K(W2, l2, sigma_kernel)
 
-            # Calculates the absorptions            
+            # Calculates the absorptions
+            abs_geo_w2     =   self.absorption(l2, v_GEO, nN_GEO, nS_GEO ,b_GEO, xi_GEO, T_GEO, param, Nwindows)            
             abs_ism_w2     =   self.absorption(l2, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
             abs_bp_w2      =   self.absorption(l2, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
             abs_X1_w2      =   self.absorption(l2, v_X1, nN_X1, nS_X1, b_X1, xi_X1, T_X1, param, Nwindows)
             abs_X2_w2      =   self.absorption(l2, v_X2, nN_X2, nS_X2, b_X2, xi_X2, T_X2, param, Nwindows)
             
             # Continuum line
-            f_w2           =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
+            pn_w2, f_w2     =   self.Continuum(param, param["display"]["window2"]["name"], l2, W2, F2, E2)
             
-            f_abs_con_w2   =   np.convolve(f_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2, kernel_w2, mode='same')
+            f_abs_con_w2   =   np.convolve(f_w2*abs_geo_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2, kernel_w2, mode='same')
+
+            # Absorption by Earth's Atmosphere
+            f_abs_geo_w2   =   np.convolve(f_w2*abs_geo_w2, kernel_w2, mode='same')
 
             # Absorption by ISM
             f_abs_ism_w2   =   np.convolve(f_w2*abs_ism_w2, kernel_w2, mode='same')        
@@ -378,7 +389,8 @@ class Model:
             # Interpolation on COS wavelengths, relative to the star
             f_abs_int_w2   =   np.interp(W2,l2,f_abs_con_w2)
 
-            unconvolved_w2 =   f_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2
+            unconvolved_w2 =   f_w2*abs_geo_w2*abs_ism_w2*abs_bp_w2*abs_X1_w2*abs_X2_w2
+
 
             if param["fit"]["lsf"] == 'tabulated':
                 kernel_w3  =   self.LSF(param, W2)
@@ -386,15 +398,19 @@ class Model:
                 kernel_w3  =   self.K(W3, l3, sigma_kernel)
 
             # Calculates the absorptions
+            abs_geo_w3     =   self.absorption(l3, v_GEO, nN_GEO, nS_GEO ,b_GEO, xi_GEO, T_GEO, param, Nwindows)  
             abs_ism_w3     =   self.absorption(l3, v_ISM, nN_ISM, nS_ISM, b_ISM, xi_ISM, T_ISM, param, Nwindows)
             abs_bp_w3      =   self.absorption(l3, v_CS, nN_CS, nS_CS, b_CS, xi_CS, T_CS, param, Nwindows)
             abs_X1_w3      =   self.absorption(l3, v_X1, nN_X1, nS_X1, b_X1, xi_X1, T_X1, param, Nwindows)
             abs_X2_w3      =   self.absorption(l3, v_X2, nN_X2, nS_X2, b_X2, xi_X2, T_X2, param, Nwindows)
             
             # Continuum line
-            f_w3           =   self.Continuum(param, param["display"]["window3"]["name"], l3, W3, F3, E3)
+            pn_w3, f_w3     =   self.Continuum(param, param["display"]["window3"]["name"], l3, W3, F3, E3)
             
             f_abs_con_w3   =   np.convolve(f_w3*abs_ism_w3*abs_bp_w3*abs_X1_w3*abs_X2_w3, kernel_w3, mode='same')
+
+            # Absorption by Earth's Atmosphere
+            f_abs_geo_w3   =   np.convolve(f_w3*abs_geo_w3, kernel_w3, mode='same')
 
             # Absorption by ISM
             f_abs_ism_w3   =   np.convolve(f_w3*abs_ism_w3, kernel_w3, mode='same')        
@@ -409,24 +425,24 @@ class Model:
             # Interpolation on COS wavelengths, relative to the star
             f_abs_int_w3   =   np.interp(W3,l3,f_abs_con_w3)
 
-            unconvolved_w3 =   f_w3*abs_ism_w3*abs_bp_w3*abs_X1_w3*abs_X2_w3
+            unconvolved_w3 =   f_w3*f_abs_geo_w3*abs_ism_w3*abs_bp_w3*abs_X1_w3*abs_X2_w3
 
             
         if Nwindows == 1:
-            return f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1
+            return f_abs_int_w1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1
         
         if Nwindows == 2:
-            return f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, f_abs_int_w2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2
+            return f_abs_int_w1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1, f_abs_int_w2, f_abs_con_w2, f_abs_geo_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2, pn_w2
 
         if Nwindows == 3:
-            return f_abs_int_w1, f_abs_con_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, f_abs_int_w2, f_abs_con_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2, f_abs_int_w3, f_abs_con_w3, f_abs_ism_w3, f_abs_bp_w3,  f_abs_X1_w3, f_abs_X2_w3, unconvolved_w3
+            return f_abs_int_w1, f_abs_con_w1, f_abs_geo_w1, f_abs_ism_w1, f_abs_bp_w1, f_abs_X1_w1, f_abs_X2_w1, unconvolved_w1, pn_w1, f_abs_int_w2, f_abs_con_w2, f_abs_geo_w2, f_abs_ism_w2, f_abs_bp_w2, f_abs_X1_w2, f_abs_X2_w2, unconvolved_w2, pn_w2, f_abs_int_w3, f_abs_con_w3, f_abs_geo_w3, f_abs_ism_w3, f_abs_bp_w3,  f_abs_X1_w3, f_abs_X2_w3, unconvolved_w3, pn_w3
 
     def Model(self, params, Const, ModelType, param):
         
         sigma_kernel    = param["instrument"]["sigma_kernel"]
 
         # Free parameters
-        nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X1, nS_X1, b_X1, T_X1, xi_X1, v_X1, nN_X2, nS_X2, b_X2, T_X2, xi_X2, v_X2    = params
+        nN_GEO, nS_GEO, b_GEO, T_GEO, xi_GEO, v_GEO, nN_ISM, nS_ISM, b_ISM, T_ISM, xi_ISM, nN_CS, nS_CS, b_CS, T_CS, xi_CS, nN_X1, nS_X1, b_X1, T_X1, xi_X1, v_X1, nN_X2, nS_X2, b_X2, T_X2, xi_X2, v_X2    = params
 
         Nwindows        = param["fit"]["windows"]["number"]
 
